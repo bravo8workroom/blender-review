@@ -19,7 +19,7 @@
   --menu-bg:#2d2f33; --menu-ink:#e9e9e9;
   --key-top:#ffffff; --key-edge:#c9d0d8; --key-shadow:#aeb7c1;
   --f-body:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-  --f-key:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --f-key:"JetBrains Mono","Noto Sans KR",ui-monospace,Consolas,monospace;
   --base:19px;
   color-scheme:light;
 }
@@ -154,7 +154,7 @@ kbd{font-family:var(--f-key);font-weight:800;display:inline-flex;align-items:cen
 
 <div class="wrap" id="app">
   <div class="top">
-    <div class="brand">블렌더 단축키 복습<small>메뉴 기능 + 단축키 · 10분류 72장</small></div>
+    <div class="brand">블렌더 단축키 복습<small>메뉴 기능 + 단축키 · 블렌더 10분류 · 뱀부 3분류 · 108장</small></div>
     <div class="size"><button id="fsm" aria-label="글씨 작게">가−</button><button id="fsp" aria-label="글씨 크게">가+</button></div>
   </div>
   <div class="tools"><button id="mic" aria-pressed="false">🎤 말로 풀기 꺼짐</button><button id="snd" aria-pressed="false">🔕 소리 꺼짐</button></div>
@@ -166,6 +166,7 @@ kbd{font-family:var(--f-key);font-weight:800;display:inline-flex;align-items:cen
 /* ===== 카드 재료 =====
    키·메뉴 경로: 블렌더 5.2 blender_default.py · space_view3d.py 로 확인 (2026-11-14).
    ⑨ 숫자: 3d-print 스킬 references/tolerances.md (FDM 일반값).
+   ⑪~⑬ 뱀부: 연습/뱀부/뱀부-01~31 연습.json 의 키·자리(실물 시험 통과분)만 · 영어 이름은 Bambu Studio resources/i18n/ko/BambuStudio.mo 대조 (2026-11-14).
    kind: key(기본) · mouse · menu(메뉴·칸 이름) · num(숫자) · word(말). then = 앞 키로 연 메뉴에서 고를 것. */
 const CATS = [
  {n:1, name:"화면과 길 찾기", tip:"마우스 가운데 휠과 숫자패드로 보는 자리 바꾸기"},
@@ -178,6 +179,9 @@ const CATS = [
  {n:8, name:"출력 전 검사·내보내기", tip:"뽑기 전에 꼭 보는 것"},
  {n:9, name:"키링·케이스 숫자 규칙", tip:"프린터로 뽑으면 달라지는 숫자. 3D 출력 공차표의 일반값이라 프린터·재료마다 실물로 한 번 확인해요"},
  {n:10, name:"글자 (이름 키링)", tip:"이름 키링 만들 때 나오는 것"},
+ {n:11, name:"뱀부 단축키", tip:"뱀부 스튜디오 준비 화면에서 누르는 키. A · N 은 블렌더와 하는 일이 달라요"},
+ {n:12, name:"뱀부 오른쪽 클릭·도구 줄", tip:"물체를 오른쪽 클릭하거나 도구 줄에서 여는 것"},
+ {n:13, name:"뱀부 설정 어느 탭에", tip:"왼쪽 「프로세스」 탭(품질 · 강도 · 속도 · 서포트 · 기타) 어디에 있나. 못 찾으면 🔍 에 이름을 쳐요"},
 ];
 const CARDS = [
  /* ① 화면과 길 찾기 */
@@ -334,6 +338,81 @@ const CARDS = [
   why:"손에 닿아도 글자가 안 닳게", where:["글자 → Convert → Mesh","판에 Boolean","Difference"], origin:"음(陰) = 들어간 것", near:["emboss","booldiff","convert"]},
  {id:"emboss", cat:10, kind:"word", keys:["양각"], ko:"글자를 판 위에 볼록 붙이기", en:"Emboss · Union / Ctrl+J", task:"판 위에 이름을 볼록 튀어나오게 붙이는 걸 뭐라고 하나요?", mode:"글자 키링",
   why:"글자만 다른 색으로 뽑기 좋게", where:["글자를 판 위에 올림","Boolean Union 또는 Ctrl+J"], origin:"양(陽) = 튀어나온 것", near:["engrave","booluni","cj"]},
+ /* ⑪ 뱀부 단축키 */
+ {id:"bimp", cat:11, keys:["Ctrl","I"], ko:"모델 가져오기 (추가)", en:"Import 3MF/STL/STEP/SVG/OBJ/AMF", task:"블렌더에서 내보낸 STL 을 뱀부 판에 올리려면?", mode:"뱀부 · 준비 화면",
+  why:"블렌더에서 만든 키링 STL 을 뱀부로 가져올 때", where:["도구 줄 맨 왼쪽 「추가」"], origin:"I = Import(들여오다). 저장은 블렌더처럼 Ctrl+S", near:["bexp","bslice","barr"]},
+ {id:"barr", cat:11, keys:["A"], ko:"모든 객체 정렬", en:"Arrange all objects", task:"판 위 물체들이 겹치지 않게 한 번에 늘어놓으려면?", mode:"뱀부 · 판 빈 곳 클릭 뒤",
+  why:"인식표 여러 개가 겹치거나 판 밖으로 나갔을 때", where:["도구 줄 왼쪽에서 4번째 「모든 객체 정렬」"], origin:"A = Arrange(늘어놓다). ⚠ 블렌더 A 는 「모두 고르기」 — 글자는 같고 하는 일은 달라요", near:["blay","bscale","bpaint"]},
+ {id:"blay", cat:11, keys:["F"], ko:"선택면을 바닥으로", en:"Lay on face", task:"세워진 인식표를 넓은 면이 판에 닿게 눕히려면?", mode:"뱀부 · 물체 클릭 뒤",
+  why:"넓은 면이 판에 닿아야 잘 붙고 서포트가 필요 없어서", where:["도구 줄 「스케일」 오른쪽 「선택면을 바닥으로」","판에 댈 면 클릭"], origin:"F = Face(면). 누른 면이 판에 닿아요", near:["barr","bscale","bcut"]},
+ {id:"bscale", cat:11, keys:["S"], ko:"크기 바꾸기 (스케일)", en:"Scale", task:"인식표 폭을 50mm에서 40mm로 줄이려면?", mode:"뱀부 · 물체 클릭 뒤",
+  why:"폭·높이를 mm 숫자로 맞출 때", where:["도구 줄 「스케일」","오른쪽 위 「사이즈」 X 칸에 40 → Enter"], origin:"S = Scale. 블렌더 S 와 같은 뜻이에요", near:["barr","blay","bcut"]},
+ {id:"bcut", cat:11, keys:["C"], ko:"자르기", en:"Cut", task:"큰 물건을 반으로 잘라 따로 뽑으려면?", mode:"뱀부 · 물체 클릭 뒤",
+  why:"판보다 큰 물건을 나눠 뽑고 다시 끼울 때", where:["도구 줄 「자르기」","「높이」 칸 = 자를 자리"], origin:"C = Cut(자르다). 키가 안 먹으면 도구 줄 「자르기」", near:["bbool","blay","bscale"]},
+ {id:"bbool", cat:11, keys:["B"], ko:"메시 부울 (결합 · 교차 · 차이)", en:"Mesh Boolean", task:"바깥 상자에서 안쪽 모양을 빼서 틀 자리를 파려면?", mode:"뱀부 · 부품 2개인 물체",
+  why:"실리콘 틀처럼 한 모양에서 다른 모양을 뺄 때", where:["도구 줄 「메시 부울」","「차이」 → 실행"], origin:"B = Boolean. 블렌더 불리언 Difference = 뱀부 「차이」", near:["bcut","bpaint","blay"]},
+ {id:"bpaint", cat:11, keys:["N"], ko:"컬러 페인팅", en:"Color Painting", task:"상자 윗면만 다른 색으로 칠하는 붓을 켜려면?", mode:"뱀부 · 물체 클릭 뒤",
+  why:"한 물체의 면만 다른 필라멘트 색으로 뽑을 때", where:["도구 줄 「…」(더보기)","컬러 페인팅"], origin:"⚠ 블렌더 N 은 옆 서랍 — 뱀부 N 은 칠하기. 끝낼 땐 Esc", near:["bbool","barr","bcut"]},
+ {id:"bslice", cat:11, keys:["Ctrl","R"], ko:"플레이트 슬라이스", en:"Slice plate", task:"뽑기 전에 층으로 썰어 시간·무게를 보려면?", mode:"뱀부 · 어디서나",
+  why:"설정을 바꾼 뒤 미리보기·시간·무게(g)를 볼 때", where:["맨 위 오른쪽 「플레이트 슬라이스」"], origin:"외우는 꾀: R = Run(돌려 보기)", near:["bexp","bimp","barr"]},
+ {id:"bexp", cat:11, keys:["Ctrl","G"], ko:"슬라이스 파일 내보내기", en:"Export plate sliced file", task:"슬라이스한 결과를 파일(.gcode.3mf)로 저장하려면?", mode:"뱀부 · 슬라이스 뒤",
+  why:"프린터로 보낼 파일을 따로 남길 때", where:["슬라이스 뒤 Ctrl+G","저장 창 「파일 이름」 → Enter"], origin:"G = G코드. ⚠ Ctrl+Shift+G 는 프린터로 바로 보내요", near:["bslice","bimp","bbool"]},
+ /* ⑫ 뱀부 오른쪽 클릭·도구 줄 */
+ {id:"bfil", cat:12, kind:"menu", keys:["필라멘트 교체"], ko:"이 조각만 다른 색으로", en:"Change Filament", task:"글자 조각만 2번(노랑) 필라멘트로 바꾸려면?", mode:"뱀부 · 물체 오른쪽 클릭",
+  why:"이름 글자만 다른 색으로 뽑을 때", where:["글자 조각 오른쪽 클릭","맨 아래 「필라멘트 교체」","2"], origin:"교체 = 바꾸기. 숫자 = 필라멘트 칸 번호", near:["bmix","bsplit","bneg"]},
+ {id:"bsplit", cat:12, kind:"menu", keys:["분할 → 출력물으로"], ko:"한 물체를 부품 여러 개로 나누기", en:"Split › To parts", task:"붙어 있던 두 덩어리를 한 물체 안 부품 2개로 나누려면?", mode:"뱀부 · 물체 오른쪽 클릭",
+  why:"부품마다 색을 따로 주거나, 메시 부울로 빼기 전에", where:["물체 오른쪽 클릭","분할","출력물으로"], origin:"「출력물으로」 = 부품으로(To parts) — 번역이 어색해요", near:["bneg","bsvg","bfil"]},
+ {id:"bneg", cat:12, kind:"menu", keys:["음량 부품 추가"], ko:"네거티브 파트 (겹친 곳 비우기)", en:"Add negative part", task:"블록에 큐브 모양으로 움푹 음각을 내려면?", mode:"뱀부 · 물체 오른쪽 클릭",
+  why:"블렌더로 돌아가지 않고 뱀부에서 바로 구멍·음각을 낼 때", where:["물체 오른쪽 클릭","음량 부품 추가","큐브 → 확인"], origin:"「음량 부품」 = Negative part 번역. 겹친 자리가 비어요", near:["bsvg","bsplit","bfil"]},
+ {id:"bsvg", cat:12, kind:"menu", keys:["출력물 추가 → SVG"], ko:"SVG 그림 붙이기", en:"Add part › SVG", task:"인식표 위에 하트 그림(SVG)을 도톰하게 붙이려면?", mode:"뱀부 · 물체 오른쪽 클릭",
+  why:"로고·하트를 인식표 위에 붙일 때", where:["물체 오른쪽 클릭","출력물 추가","SVG 업로드 사용"], origin:"「출력물 추가」 = 부품 더하기(Add part). 「깊이」 칸이 두께", near:["bneg","bsplit","bmix"]},
+ {id:"bconn", cat:12, kind:"menu", keys:["커넥터 추가"], ko:"자른 면에 끼움 꽂이 달기", en:"Add connector", task:"반으로 자른 두 조각이 다시 딱 끼워지게 하려면?", mode:"뱀부 · 자르기(C) 창 안",
+  why:"자른 조각을 풀 없이 맞춰 끼울 때", where:["C (자르기)","창 가운데 「커넥터 추가」","주황 절단면 가운데 클릭 → 확인"], origin:"커넥터 없이 잘렸으면 Ctrl+Z 하고 「커넥터 추가」부터", near:["bsplit","bneg","bsvg"]},
+ {id:"bvlh", cat:12, kind:"menu", keys:["가변 레이어 높이"], ko:"층 두께를 자리마다 다르게", en:"Variable layer height", task:"기울어진 곳만 층을 얇게 해서 결을 곱게 하려면?", mode:"뱀부 · 물체 클릭 뒤",
+  why:"둥근 머리 쪽 층 자국은 줄이고 시간은 아낄 때", where:["도구 줄 왼쪽 다섯째 (층 줄무늬)","창 맨 위 「어댑티브」"], origin:"가변 = 바뀌는. 어댑티브(Adaptive) = 알아서 맞춤", near:["bpause","bweight","bmix"]},
+ {id:"bpause", cat:12, kind:"menu", keys:["일시중지 추가"], ko:"그 층에서 프린터 멈추기", en:"Add Pause", task:"중간 층에서 프린터를 멈추고 천을 올리려면?", mode:"뱀부 · 슬라이스 뒤 미리보기",
+  why:"튤·오간자 같은 천을 넣어 뽑을 때", where:["오른쪽 층 막대 손잡이를 끌어 내림","「+」 오른쪽 클릭","일시중지 추가"], origin:"멈추면 천을 올리고 프린터에서 다시 시작", near:["bvlh","bweight","bmix"]},
+ {id:"bmix", cat:12, kind:"menu", keys:["+ 혼합 필라멘트 추가"], ko:"두 색을 섞은 새 색 만들기", en:"Add Mixed Filament", task:"1번·2번 색을 층마다 섞어 중간색을 만들려면?", mode:"뱀부 · 왼쪽 필라멘트 칸",
+  why:"필라멘트를 더 안 사고 새 색을 낼 때", where:["왼쪽 「프로젝트 필라멘트」 아래","+ 혼합 필라멘트 추가 → 확인","물체에 필라멘트 교체 → 3"], origin:"혼합 = 섞기. 만든 색은 물체에 입혀야 쓰여요", near:["bfil","bpause","bsvg"]},
+ {id:"bweight", cat:12, kind:"menu", keys:["총: … g"], ko:"슬라이스 뒤 무게 읽기", en:"Total", task:"슬라이스한 뒤 필라멘트 무게(g)는 어디서 보나요?", mode:"뱀부 · 슬라이스 뒤",
+  why:"재료 원가를 셀 때", where:["Ctrl+R 슬라이스","왼쪽 위 슬라이싱 결과","「총: … g」 줄"], origin:"총 = Total. g = 그램", near:["bpause","bvlh","bmix"]},
+ /* ⑬ 뱀부 설정 어느 탭에 */
+ {id:"blh", cat:13, kind:"menu", keys:["레이어 높이"], ko:"한 층 두께", en:"Layer height", task:"옆면 층 자국을 곱게 하려고 한 층을 얇게 하는 칸은?", mode:"뱀부 · 프로세스 · 품질 탭",
+  why:"0.2 → 0.16 이면 결이 고와지고 시간은 늘어요", where:["왼쪽 프로세스","품질","맨 위 「레이어 높이」"], origin:"레이어 = 층", near:["bwall","bfirst","btoplay"]},
+ {id:"biron", cat:13, kind:"menu", keys:["다림질 유형"], ko:"윗면 다림질 (매끈하게)", en:"Ironing Type", task:"메달 윗면을 매끈하게 하려면?", mode:"뱀부 · 프로세스 · 품질 탭",
+  why:"맨 윗면을 노즐이 한 번 더 지나가요 — 「최상단 표면」 · 속도 60 · 압출량 30%", where:["왼쪽 프로세스","품질","다림질 유형 → 최상단 표면"], origin:"다림질 = 옷 다리듯 윗면을 한 번 더 문지름", near:["bfuzzy","bseam","barach"]},
+ {id:"barach", cat:13, kind:"menu", keys:["벽 생성기 → 아라크네"], ko:"가는 글씨 살리기", en:"Wall generator › Arachne", task:"가는 글씨 획이 끊기지 않게 하려면?", mode:"뱀부 · 프로세스 · 품질 탭",
+  why:"선 굵기가 글자 굵기에 맞춰 바뀌어요. 작은 윗면은 「상단 표면 패턴 → 동심」도 같이", where:["왼쪽 프로세스","품질","벽 생성기 → 아라크네"], origin:"아라크네(Arachne) = 거미 — 가는 실도 이어 그린다고 외워요", near:["bwall","biron","bseam"]},
+ {id:"bseam", cat:13, kind:"menu", keys:["재봉선 위치"], ko:"층 시작 자국(솔기) 모으기", en:"Seam position", task:"층이 시작·끝나는 세로 줄 자국을 뒤로 모으려면?", mode:"뱀부 · 프로세스 · 품질 탭",
+  why:"컵·통 앞면에 줄 자국이 안 보이게 「Back」", where:["왼쪽 프로세스","품질","재봉선 위치 → Back"], origin:"재봉선 = 솔기(Seam). 옷 꿰맨 줄처럼 한 줄로 남아요", near:["bfuzzy","biron","barach"]},
+ {id:"bbridge", cat:13, kind:"menu", keys:["브릿지 압출량"], ko:"공중 다리 덜 처지게", en:"Bridge flow", task:"다리처럼 공중에 걸친 부분이 처지지 않게 하려면?", mode:"뱀부 · 프로세스 · 품질 탭 · 고급 설정",
+  why:"1 → 0.7 — 덜 흘러서 덜 처져요", where:["왼쪽 프로세스","품질","맨 아래 「고급 설정」","브릿지 압출량"], origin:"브릿지 = 다리. 압출량 = 흘려 내는 양", near:["btopz","bsup","biron"]},
+ {id:"bwall", cat:13, kind:"menu", keys:["벽 수"], ko:"벽 몇 줄", en:"Wall loops", task:"손으로 비틀어도 덜 부러지게 벽을 늘리는 칸은?", mode:"뱀부 · 프로세스 · 강도 탭",
+  why:"벽 2 → 4줄이면 훨씬 튼튼해요", where:["왼쪽 프로세스","강도","맨 위 「벽 수」"], origin:"강도 탭 = 튼튼함에 관한 칸", near:["bdens","binfill","btoplay"]},
+ {id:"binfill", cat:13, kind:"menu", keys:["내부채움 패턴"], ko:"속 채움 무늬", en:"Sparse infill pattern", task:"속 채움 무늬를 어느 방향으로 비틀어도 버티게 바꾸려면?", mode:"뱀부 · 프로세스 · 강도 탭",
+  why:"「자이로이드」 = 물결 무늬라 어느 방향으로도 버텨요", where:["왼쪽 프로세스","강도","내부채움 패턴 → 자이로이드"], origin:"내부채움 = Infill. 패턴 = 무늬", near:["bdens","bwall","btoplay"]},
+ {id:"bdens", cat:13, kind:"menu", keys:["내부채움 밀도"], ko:"속을 몇 % 채우나", en:"Sparse infill density", task:"속을 몇 % 채울지 정하는 칸은?", mode:"뱀부 · 프로세스 · 강도 탭",
+  why:"0% + 상단 레이어 0 이면 속이 빈 화분·연필꽂이가 돼요", where:["왼쪽 프로세스","강도","내부채움 밀도"], origin:"밀도 = 빽빽한 정도", near:["binfill","bwall","btoplay"]},
+ {id:"btoplay", cat:13, kind:"menu", keys:["상단 레이어"], ko:"윗면 덮는 층 수", en:"Top shell layers", task:"윗면을 몇 층으로 덮을지 정하는 칸은?", mode:"뱀부 · 프로세스 · 🔍 검색",
+  why:"0 이면 위가 뚫려요 — 꽃병·연필꽂이", where:["왼쪽 프로세스","🔍 「상단 레이어」"], origin:"상단 = 위. 레이어 = 층", near:["bdens","bwall","blh"]},
+ {id:"bfirst", cat:13, kind:"menu", keys:["첫 레이어 속도"], ko:"첫 층 천천히", en:"Initial layer speed", task:"첫 층을 천천히 뽑아 판에 잘 붙게 하려면?", mode:"뱀부 · 프로세스 · 속도 탭",
+  why:"30 으로 천천히 — 바닥이 판에 잘 붙어요", where:["왼쪽 프로세스","속도","맨 위 「첫 레이어 속도」"], origin:"첫 레이어 = 판에 닿는 맨 아래 층", near:["bbrim","blh","bwall"]},
+ {id:"bsup", cat:13, kind:"menu", keys:["서포트 활성화"], ko:"서포트 켜기 (받침)", en:"Enable support", task:"공중에 뜬 고리 팔 밑을 받치려면?", mode:"뱀부 · 프로세스 · 서포트 탭",
+  why:"프로세스에서 켜면 판 위 전부, 왼쪽 「객체」에서 켜면 그 물체만", where:["왼쪽 프로세스","서포트","맨 위 「서포트 활성화」 ✓"], origin:"서포트 = 받침. 미리보기에 초록 받침이 보이면 성공", near:["btopz","bsupif","bbrim"]},
+ {id:"btopz", cat:13, kind:"menu", keys:["상단 Z 거리"], ko:"서포트와 물체 사이 틈", en:"Top Z distance", task:"서포트가 똑 떨어지게 물체와의 틈을 정하는 칸은?", mode:"뱀부 · 프로세스 · 서포트 탭 · 고급",
+  why:"0.2 → 0.25 면 잘 떨어져요. 안 붙는 재료로 받칠 땐 0", where:["왼쪽 프로세스","서포트","「고급」 묶음","상단 Z 거리"], origin:"Z = 위아래. 물체 바로 밑 틈", near:["bsup","bsupif","bbridge"]},
+ {id:"bsupif", cat:13, kind:"menu", keys:["서포트/라프트 인터페이스"], ko:"닿는 면만 다른 재료", en:"Support/raft interface", task:"서포트가 닿는 면만 다른 재료로 뽑으려면?", mode:"뱀부 · 프로세스 · 서포트 탭",
+  why:"PLA 에 PETG 처럼 서로 안 붙는 재료면 툭 떨어져요 (상단 Z 거리 0 과 같이)", where:["왼쪽 프로세스","서포트","「서포트 필라멘트」 묶음","서포트/라프트 인터페이스 → 2번"], origin:"인터페이스 = 닿는 면", near:["btopz","bsup","bbeam"]},
+ {id:"bbrim", cat:13, kind:"menu", keys:["브림 유형"], ko:"바닥 둘레 테", en:"Brim type", task:"가는 탑이 판에서 쓰러지지 않게 바닥 둘레에 테를 두르려면?", mode:"뱀부 · 프로세스 · 기타 탭",
+  why:"「바깥쪽만」 — 바닥이 넓어져 안 쓰러져요", where:["왼쪽 프로세스","기타","브림 유형 → 바깥쪽만"], origin:"브림(Brim) = 모자 챙", near:["bfirst","bseq","bsup"]},
+ {id:"bseq", cat:13, kind:"menu", keys:["출력 순서 → 객체별"], ko:"하나씩 다 뽑고 다음으로", en:"Print sequence › By object", task:"인식표 여러 개를 하나씩 다 뽑고 다음으로 넘어가게 하려면?", mode:"뱀부 · 프로세스 · 기타 탭",
+  why:"여러 색일 때 색 바꿈이 확 줄어요", where:["왼쪽 프로세스","기타","출력 순서 → 객체별"], origin:"기본은 「레이어별」 — 모든 물체를 한 층씩 같이", near:["bshell","bbrim","bfuzzy"]},
+ {id:"bfuzzy", cat:13, kind:"menu", keys:["퍼지 스킨"], ko:"겉면 오돌토돌 질감", en:"Fuzzy Skin", task:"바깥 벽을 오돌토돌하게 해서 층 자국을 감추려면?", mode:"뱀부 · 프로세스 · 기타 탭 · 특수 기능",
+  why:"「윤곽」 · 점 간격 0.6 · 두께 0.2", where:["왼쪽 프로세스","기타","「특수 기능」 묶음","퍼지 스킨 → 윤곽"], origin:"퍼지(Fuzzy) = 보송보송", near:["bseam","biron","bseq"]},
+ {id:"bbeam", cat:13, kind:"menu", keys:["빔 연동 사용"], ko:"안 붙는 두 재료 엇물리기", en:"Use beam interlocking", task:"안 붙는 두 재료(PLA·TPU)를 빗살로 엇물리게 하려면?", mode:"뱀부 · 프로세스 · 🔍 검색",
+  why:"두 부품 경계가 빗살처럼 맞물려 안 떨어져요", where:["왼쪽 프로세스","🔍 「빔 연동」","빔 연동 사용 ✓"], origin:"빔 = 막대. 연동 = 서로 물림(interlocking)", near:["bshell","bsupif","bseq"]},
+ {id:"bshell", cat:13, kind:"menu", keys:["인터페이스 쉘"], ko:"색 경계 구멍 막기", en:"Interface shells", task:"색이 바뀌는 경계층에 생기는 구멍을 없애려면?", mode:"뱀부 · 프로세스 · 🔍 검색",
+  why:"객체별 출력과 같이 켜요", where:["왼쪽 프로세스","🔍 「인터페이스 쉘」 ✓"], origin:"쉘(Shell) = 껍데기. 경계마다 껍데기를 한 겹", near:["bseq","bbeam","bsupif"]},
 ];
 const BY = Object.fromEntries(CARDS.map(c=>[c.id,c]));
 
@@ -346,6 +425,7 @@ const FAMS = [
  {id:"grs", title:"G · R · S 와 X · Y · Z", desc:"G 옮기기 · R 돌리기 · S 크기. 바로 뒤에 X(좌우) · Y(앞뒤) · Z(위아래)를 누르면 그 방향으로만.", members:["g","r","s","axis"]},
  {id:"np", title:"숫자패드 = 보는 방향", desc:"1 앞 · 3 오른쪽 · 7 위. Ctrl 을 같이 누르면 반대쪽(뒤 · 왼쪽 · 아래).", members:["np1","np3","np7","npdot"]},
  {id:"wheel", title:"가운데 휠 하나로 세 가지", desc:"굴리기 = 당기기 · 누른 채 끌기 = 돌리기 · Shift + 누른 채 끌기 = 밀기", members:["wheel","mmb","smmb"]},
+ {id:"bbsame", title:"블렌더와 뱀부 — 같은 글자, 다른 일", desc:"S 는 둘 다 크기. A 는 블렌더 = 모두 고르기 · 뱀부 = 정렬. N 은 블렌더 = 옆 서랍 · 뱀부 = 컬러 페인팅.", members:["bscale","barr","bpaint"]},
  {id:"sel", title:"위쪽 숫자줄 1 · 2 · 3", desc:"편집 모드에서 1 점 · 2 선 · 3 면. 숫자가 클수록 큰 조각.", members:["k1","k2","k3"]},
 ];
 const famsOf = id => FAMS.filter(f=>f.members.includes(id));
@@ -670,7 +750,7 @@ function home(){
     <button class="big" id="go">${nothing ? "더 하기 (10분)" : "시작 (10분)"}</button>
     <p class="note">한 번에 10분이에요. 여러 분류가 <b>섞여서</b> 나와요. 10분이 지나면 그 문제까지 하고 끝나요.</p>
     <div class="sect">분류별 공부 · 하나 골라 훑어보고 그 분류만 풀어요</div>
-    <div class="cats">${cats}<div class="catrow soon"><span class="cn">11</span><span class="ct"><b>뱀부 스튜디오</b><span>다음 단계에 열려요</span></span><span></span></div></div>
+    <div class="cats">${cats}</div>
     <p class="note">${storeNote()}</p>
   </div>`;
   document.getElementById("go").onclick = () => nothing ? startMore() : startToday();
