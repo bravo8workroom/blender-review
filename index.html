@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>블렌더 단축키 복습</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@600;800&display=swap">
+<style>
+/* Layout: one calm column, one question per screen, big tap targets. White ground only (owner 2026-11-14) — single light theme by choice. */
+:root{
+  --ground:#ffffff; --ink:#1d2329; --soft:#5d6873; --line:#e3e8ee; --panel:#f4f7fa;
+  --accent:#e87d0d;           /* Blender orange */
+  --accent-ink:#9a4f00; --accent-wash:#fff3e6;
+  --ok:#1f8a4c; --ok-wash:#e8f6ee; --again:#b0541e; --again-wash:#fdf0e8;
+  --menu-bg:#2d2f33; --menu-ink:#e9e9e9;
+  --key-top:#ffffff; --key-edge:#c9d0d8; --key-shadow:#aeb7c1;
+  --f-body:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-key:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --base:19px;
+  color-scheme:light;
+}
+html,body{background:var(--ground);color:var(--ink)}
+body{font-family:var(--f-body);font-size:var(--base);line-height:1.6;word-break:keep-all;overflow-wrap:break-word;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:900;font-size:1.05em;letter-spacing:-.01em}
+.brand small{display:block;font-weight:500;font-size:.68em;color:var(--soft);letter-spacing:0}
+.size{display:flex;gap:6px}
+.size button{min-width:48px;min-height:44px;border:1px solid var(--line);background:var(--ground);border-radius:10px;font-weight:700;font-size:.8em}
+.note{font-size:.78em;color:var(--soft);background:var(--panel);border-radius:10px;padding:10px 14px;margin:0}
+.note b{color:var(--ink)}
+h1{font-size:1.5em;line-height:1.3;margin:0;text-wrap:balance;letter-spacing:-.02em}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.stat b{display:block;font-size:1.45em;line-height:1.2;font-variant-numeric:tabular-nums}
+.stat span{font-size:.72em;color:var(--soft)}
+.big{display:block;width:100%;min-height:64px;border:0;border-radius:14px;background:var(--accent);color:#fff;font-weight:900;font-size:1.1em;padding:14px}
+.big.alt{background:var(--ground);color:var(--ink);border:2px solid var(--ink)}
+.big[disabled]{opacity:.45;cursor:default}
+.ghost{border:0;background:none;color:var(--soft);text-decoration:underline;text-underline-offset:4px;min-height:48px;font-size:.85em}
+.sect{font-size:.78em;font-weight:700;color:var(--soft);letter-spacing:.04em;margin-top:6px}
+/* category board */
+.cats{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.catrow{display:grid;grid-template-columns:2.1em minmax(0,1fr) 3.6em;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:var(--ground);padding:12px 2px;min-height:60px}
+.catrow .cn{width:1.9em;height:1.9em;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-wash);color:var(--accent-ink);font-weight:900;font-size:.85em;font-variant-numeric:tabular-nums}
+.catrow .ct{min-width:0}
+.catrow .ct b{display:block;font-size:.95em}
+.catrow .ct span{font-size:.72em;color:var(--soft)}
+.catrow .bar{height:7px;border-radius:99px;background:var(--line);overflow:hidden}
+.catrow .bar i{display:block;height:100%;background:var(--accent)}
+.catrow.soon{opacity:.55;cursor:default}
+/* card rows inside a category */
+.cards{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.crow{border-bottom:1px solid var(--line)}
+.crow > button{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:var(--ground);padding:10px 0;min-height:56px}
+.crow .nm{min-width:0;display:flex;flex-direction:column;gap:4px}
+.crow .nm b{font-size:.92em}
+.crow .nm .sub{font-size:.72em;color:var(--soft)}
+.crow .tok kbd{font-size:.74em}
+.crow .tok .menu{font-size:.66em}
+.crow .detail{padding:0 0 14px}
+.boxes{display:flex;gap:3px}
+.boxes i{width:9px;height:14px;border-radius:3px;background:var(--line)}
+.boxes i.on{background:var(--accent)}
+.tag{font-size:.7em;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--ok-wash);color:var(--ok);white-space:nowrap}
+.tag.new{background:var(--panel);color:var(--soft)}
+/* family box — 앞 키 뜻 · 가족 */
+.fam{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--panel)}
+.fam .ft{font-weight:900;font-size:.92em}
+.fam .fd{font-size:.78em;color:var(--soft)}
+.fam ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.fam li{display:flex;align-items:center;gap:10px;font-size:.82em;flex-wrap:wrap}
+.fam li .tok kbd{font-size:.8em}
+.fam .fx{font-size:.72em;color:var(--again)}
+/* tokens: keycaps, menu names, numbers */
+.tok{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.keys{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.keys .plus{font-weight:700;color:var(--soft)}
+.tok .keys{gap:5px}
+kbd{font-family:var(--f-key);font-weight:800;display:inline-flex;align-items:center;justify-content:center;min-width:1.9em;height:1.9em;padding:0 .45em;
+  background:var(--key-top);border:1px solid var(--key-edge);border-radius:.32em;box-shadow:0 .14em 0 var(--key-shadow);font-size:1em;line-height:1;white-space:nowrap}
+.tok.huge{justify-content:center}
+.tok.huge kbd{font-size:2.1em}
+.tok.huge .menu{font-size:1.25em}
+.tok.huge .numtok{font-size:1.9em}
+.tok.huge .pick{font-size:1.2em}
+.tok.mid kbd{font-size:1.15em}
+.then{display:inline-flex;align-items:center;gap:6px}
+.then em{font-style:normal;color:var(--soft);font-weight:700}
+.pick{font-family:var(--f-key);font-weight:700;font-size:.82em;border:2px dashed var(--accent);color:var(--accent-ink);background:var(--ground);border-radius:6px;padding:2px 8px;white-space:nowrap}
+.ctx{font-size:.66em;color:var(--soft);font-weight:500}
+.numtok{font-family:var(--f-key);font-weight:800;color:var(--accent-ink);background:var(--accent-wash);border-radius:8px;padding:2px 10px;white-space:nowrap}
+/* menu path like Blender's dark menu */
+.menu{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-family:var(--f-key);font-weight:600;font-size:.78em}
+.menu span{background:var(--menu-bg);color:var(--menu-ink);padding:4px 9px;border-radius:5px}
+.menu em{font-style:normal;color:var(--soft)}
+/* question screen */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.75em;color:var(--soft)}
+.chip{font-size:.72em;font-weight:700;color:var(--accent-ink);background:var(--accent-wash);padding:3px 10px;border-radius:99px;white-space:nowrap}
+.prompt{text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;padding:8px 0}
+.prompt .ask{font-size:1.2em;font-weight:700;text-wrap:balance}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;text-align:left;border:2px solid var(--line);background:var(--ground);border-radius:14px;padding:10px 16px;font-weight:700}
+.choice.right{border-color:var(--ok);background:var(--ok-wash)}
+.choice.wrongpick{border-color:var(--again);background:var(--again-wash)}
+.choice[disabled]{cursor:default}
+/* assemble (눌러서 맞히기) */
+.asm{display:flex;flex-direction:column;gap:10px}
+.asl{font-size:.75em;font-weight:700;color:var(--soft);margin:4px 0 0}
+.asl .pick{font-size:1em}
+.mods,.lets{display:grid;gap:8px}
+.mods{grid-template-columns:repeat(3,1fr)}
+.lets{grid-template-columns:repeat(2,1fr)}
+.mk,.lk,.tk{min-height:58px;border:2px solid var(--line);background:var(--ground);border-radius:12px;display:flex;align-items:center;justify-content:center;padding:6px}
+.mk kbd,.lk kbd{font-size:1.05em}
+.mk.on,.lk.on,.tk.on{border-color:var(--accent);background:var(--accent-wash)}
+.mk.right,.lk.right,.tk.right{border-color:var(--ok);background:var(--ok-wash)}
+.built{min-height:2.6em;display:flex;align-items:center;justify-content:center;border:1px dashed var(--key-edge);border-radius:12px;padding:6px;font-size:.9em;color:var(--soft)}
+.fb{border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.fb.ok{background:var(--ok-wash)} .fb.again{background:var(--again-wash)}
+.fb .head{font-weight:900}
+.fb.ok .head{color:var(--ok)} .fb.again .head{color:var(--again)}
+.fb p{margin:0;font-size:.88em}
+.fb .why{color:var(--soft)}
+.fb p .tok{vertical-align:middle;gap:4px}
+.fb p kbd{font-size:.9em}
+/* intro (new card) */
+.intro{display:flex;flex-direction:column;gap:14px}
+.step{display:grid;grid-template-columns:5.2em minmax(0,1fr);gap:10px;align-items:start;border-top:1px solid var(--line);padding-top:12px}
+.step .lb{font-size:.72em;font-weight:700;color:var(--soft);padding-top:.25em}
+.step .vl{min-width:0}
+.step .fam{background:var(--ground)}
+.en{font-family:var(--f-key);font-weight:600;color:var(--soft);font-size:.85em}
+.back{border:1px solid var(--line);background:var(--ground);border-radius:10px;min-height:44px;padding:0 14px;font-weight:700;font-size:.8em}
+.navrow{display:flex;gap:8px;justify-content:space-between}
+.navrow .back{flex:1}
+.loading{color:var(--soft);text-align:center;padding:40px 0}
+@media (prefers-reduced-motion:no-preference){.fb,.intro,.prompt{animation:in .18s ease-out}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+
+<div class="wrap" id="app">
+  <div class="top">
+    <div class="brand">블렌더 단축키 복습<small>메뉴 기능 + 단축키 · 10분류 72장</small></div>
+    <div class="size"><button id="fsm" aria-label="글씨 작게">가−</button><button id="fsp" aria-label="글씨 크게">가+</button></div>
+  </div>
+  <div id="view"><p class="loading">진도를 불러오는 중이에요…</p></div>
+</div>
+
+<script>
+/* ===== 카드 재료 =====
+   키·메뉴 경로: 블렌더 5.2 blender_default.py · space_view3d.py 로 확인 (2026-11-14).
+   ⑨ 숫자: 3d-print 스킬 references/tolerances.md (FDM 일반값).
+   kind: key(기본) · mouse · menu(메뉴·칸 이름) · num(숫자) · word(말). then = 앞 키로 연 메뉴에서 고를 것. */
+const CATS = [
+ {n:1, name:"화면과 길 찾기", tip:"마우스 가운데 휠과 숫자패드로 보는 자리 바꾸기"},
+ {n:2, name:"실수 돌이키기·안전", tip:"망쳐도 괜찮게 — 되돌리기·저장·숨기기·mm 단위"},
+ {n:3, name:"고르기·만들기·지우기", tip:"무엇을 고르고, 새로 만들고, 합치고, 지우나"},
+ {n:4, name:"옮기기·돌리기·키우기", tip:"G · R · S 세 키와 그 가족"},
+ {n:5, name:"N 칸 숫자로 정확히", tip:"눈대중 말고 mm 숫자로 — N 칸 Item 탭"},
+ {n:6, name:"편집 모드", tip:"Tab 으로 들어가서 점·선·면 고치기"},
+ {n:7, name:"모디파이어", tip:"모양을 망가뜨리지 않고 효과 얹기 — 렌치 탭"},
+ {n:8, name:"출력 전 검사·내보내기", tip:"뽑기 전에 꼭 보는 것"},
+ {n:9, name:"키링·케이스 숫자 규칙", tip:"프린터로 뽑으면 달라지는 숫자. 3D 출력 공차표의 일반값이라 프린터·재료마다 실물로 한 번 확인해요"},
+ {n:10, name:"글자 (이름 키링)", tip:"이름 키링 만들 때 나오는 것"},
+];
+const CARDS = [
+ /* ① 화면과 길 찾기 */
+ {id:"n", cat:1, keys:["N"], ko:"옆 서랍 열고 닫기", en:"Sidebar", task:"치수(mm)를 숫자로 넣는 옆 서랍을 열려면?", mode:"3D 화면 위에서",
+  why:"Item 탭의 Dimensions(치수)에 mm를 숫자로 정확히 넣을 때", where:["View","Sidebar"], origin:"외우는 꾀: N = Number(숫자) 넣는 서랍", near:["np7","home","tab"]},
+ {id:"wheel", cat:1, kind:"mouse", keys:["휠 굴리기"], ko:"가까이·멀리 보기", en:"Zoom", task:"화면을 가까이 당겨 크게 보려면?", mode:"3D 화면 위에서",
+  why:"구멍 가장자리를 크게 보고 확인할 때", where:["마우스 가운데 휠"], origin:"휠 = 돋보기. 앞으로 굴리면 가까이", near:["mmb","smmb","npdot"]},
+ {id:"mmb", cat:1, kind:"mouse", keys:["휠 누른 채 끌기"], ko:"빙 돌려 보기", en:"Orbit", task:"물체 둘레를 돌아가며 보려면?", mode:"3D 화면 위에서",
+  why:"키링 뒷면까지 빙 돌려 볼 때", where:["마우스 가운데 휠을 꾹 누른 채 끌기"], origin:"손으로 물체를 잡고 돌리는 느낌", near:["wheel","smmb","np1"]},
+ {id:"smmb", cat:1, kind:"mouse", keys:["Shift","휠 누른 채 끌기"], ko:"화면 옆으로 밀기", en:"Pan", task:"화면을 위아래·옆으로 밀어 옮기려면?", mode:"3D 화면 위에서",
+  why:"물체가 화면 구석에 있을 때 가운데로 끌어올 때", where:["Shift 누른 채 가운데 휠 끌기"], origin:"Shift 를 더하면 돌리기 대신 밀기", near:["mmb","wheel","home"]},
+ {id:"np1", cat:1, keys:["숫자패드 1"], ko:"앞에서 보기", en:"Front View", task:"물체를 정면(앞)에서 보려면?", mode:"3D 화면 위에서",
+  why:"네임택 글자가 똑바로 섰는지 앞에서 볼 때", where:["View","Viewpoint","Front"], origin:"1 앞 · 3 오른쪽 · 7 위. Ctrl 을 같이 누르면 반대쪽(뒤·왼쪽·아래)", near:["np3","np7","npdot"]},
+ {id:"np3", cat:1, keys:["숫자패드 3"], ko:"오른쪽에서 보기", en:"Right View", task:"물체를 오른쪽 옆에서 보려면?", mode:"3D 화면 위에서",
+  why:"판 두께가 3mm 맞는지 옆에서 볼 때", where:["View","Viewpoint","Right"], origin:"1 앞 · 3 오른쪽 · 7 위. Ctrl 을 같이 누르면 반대쪽(뒤·왼쪽·아래)", near:["np1","np7","home"]},
+ {id:"np7", cat:1, keys:["숫자패드 7"], ko:"위에서 내려다보기", en:"Top View", task:"물체를 위에서 내려다보려면?", mode:"3D 화면 위에서",
+  why:"구멍이 판 가운데 있는지 위에서 볼 때", where:["View","Viewpoint","Top"], origin:"1 앞 · 3 오른쪽 · 7 위. Ctrl 을 같이 누르면 반대쪽(뒤·왼쪽·아래)", near:["np1","np3","npdot"]},
+ {id:"npdot", cat:1, keys:["숫자패드 ."], ko:"고른 것 크게 보기", en:"Frame Selected", task:"고른 물체를 화면 가득 크게 보려면?", mode:"3D 화면 위에서",
+  why:"작은 고리 하나만 크게 보고 싶을 때", where:["View","Frame Selected"], origin:"외우는 꾀: 점(.) = 그 점으로 콕 다가가기", near:["home","wheel","np7"]},
+ {id:"home", cat:1, keys:["Home"], ko:"전부 한눈에 보기", en:"Frame All", task:"장면의 물체를 전부 한 화면에 보려면?", mode:"3D 화면 위에서",
+  why:"물체가 화면 밖으로 사라졌을 때", where:["View","Frame All"], origin:"Home = 집으로 — 전체가 다 보이는 처음 자리", near:["npdot","wheel","smmb"]},
+ /* ② 실수 돌이키기·안전 */
+ {id:"cz", cat:2, keys:["Ctrl","Z"], ko:"되돌리기", en:"Undo", task:"방금 한 것을 취소하려면?", mode:"어디서나",
+  why:"잘못 눌렀을 때 한 단계 뒤로 돌아갈 때", where:["Edit","Undo"], origin:"한글·엑셀과 같은 되돌리기", near:["csz","cs","ah"]},
+ {id:"csz", cat:2, keys:["Ctrl","Shift","Z"], ko:"다시 하기", en:"Redo", task:"되돌린 것을 다시 살리려면?", mode:"어디서나",
+  why:"Ctrl+Z 를 너무 많이 눌렀을 때", where:["Edit","Redo"], origin:"되돌리기(Ctrl+Z)에 Shift 를 더하면 거꾸로", near:["cz","cs","sd"]},
+ {id:"cs", cat:2, keys:["Ctrl","S"], ko:"저장", en:"Save", task:"지금 파일을 저장하려면?", mode:"어디서나",
+  why:"블렌더가 갑자기 꺼져도 작업이 남게", where:["File","Save"], origin:"S = Save(저장) — 한글·엑셀과 같음", near:["cz","csz","export"]},
+ {id:"units", cat:2, kind:"menu", keys:["Units"], ko:"단위 (mm로 바꾸기)", en:"Units", task:"길이가 mm로 보이게 바꾸는 곳은?", mode:"속성 창",
+  why:"치수를 mm로 넣어야 키링 크기가 실제와 같아서", where:["속성 창","Scene 탭","Units","Length → Millimeters"], origin:"Unit = 단위. Scene(장면) 탭 안에 있어요", near:["dims","loc","stats"]},
+ {id:"h", cat:2, keys:["H"], ko:"숨기기", en:"Hide", task:"고른 물체를 잠깐 안 보이게 하려면?", mode:"오브젝트·편집 모드",
+  why:"앞을 가린 구멍 칼을 잠깐 치울 때", where:["Object","Show/Hide","Hide Selected"], origin:"H = Hide(숨기다)", near:["ah","x","altz"]},
+ {id:"ah", cat:2, keys:["Alt","H"], ko:"숨긴 것 다시 보이기", en:"Reveal Hidden", task:"숨겨 둔 물체를 다시 보이게 하려면?", mode:"오브젝트·편집 모드",
+  why:"H 로 숨긴 걸 되살릴 때", where:["Object","Show/Hide","Reveal Hidden"], origin:"Alt = 없던 일로 → 숨긴 걸 되돌림", near:["h","aa","cz"]},
+ /* ③ 고르기·만들기·지우기 */
+ {id:"click", cat:3, kind:"mouse", keys:["클릭"], ko:"하나 고르기", en:"Select", task:"물체 하나를 고르려면?", mode:"3D 화면 위에서",
+  why:"옮길 판 하나만 고를 때", where:["물체 위에서 왼쪽 클릭"], origin:"고른 물체는 주황 테두리", near:["shclick","a","l"]},
+ {id:"shclick", cat:3, kind:"mouse", keys:["Shift","클릭"], ko:"하나 더 고르기", en:"Extend Select", task:"이미 고른 것에 하나 더 골라 넣으려면?", mode:"3D 화면 위에서",
+  why:"글자와 판을 같이 골라 합칠 때", where:["Shift 누른 채 물체 클릭"], origin:"Shift = 하나 더", near:["click","a","cj"]},
+ {id:"a", cat:3, keys:["A"], ko:"모두 고르기", en:"Select All", task:"보이는 것을 전부 고르려면?", mode:"오브젝트·편집 모드",
+  why:"편집 모드에서 면 전체를 한 번에 고를 때", where:["Select","All"], origin:"A = All(모두)", near:["aa","click","l"]},
+ {id:"aa", cat:3, keys:["Alt","A"], ko:"고른 것 모두 풀기", en:"Select None", task:"고른 것을 전부 풀려면?", mode:"오브젝트·편집 모드",
+  why:"엉뚱한 게 같이 골라졌을 때 처음부터 다시 고르려고", where:["Select","None"], origin:"Alt = 없던 일로 → 고른 걸 풀기", near:["a","ah","ag"]},
+ {id:"sa", cat:3, keys:["Shift","A"], ko:"새로 만들기 메뉴", en:"Add", task:"새 상자·원기둥을 만들려면?", mode:"오브젝트 모드",
+  why:"키링 판으로 쓸 큐브, 구멍 낼 원기둥을 새로 만들 때", where:["Add","Mesh","Cube"], origin:"A = Add(더하다). Shift = 새로", near:["sd","addtext","x"]},
+ {id:"sd", cat:3, keys:["Shift","D"], ko:"복사해서 옮기기", en:"Duplicate", task:"고른 물체를 하나 더 복사하려면?", mode:"오브젝트 모드",
+  why:"같은 구멍 칼을 하나 더 만들 때", where:["Object","Duplicate Objects"], origin:"D = Duplicate(복제). Shift = 하나 더", near:["sa","cj","g"]},
+ {id:"x", cat:3, keys:["X"], ko:"지우기", en:"Delete", task:"필요 없는 물체를 지우려면?", mode:"오브젝트 모드",
+  why:"구멍을 다 낸 뒤 남은 원기둥을 지울 때", where:["Object","Delete"], origin:"외우는 꾀: X = 엑스 표시로 지운다", gloss:"Delete = 고른 것을 지우기", near:["h","cz","sd"]},
+ {id:"cj", cat:3, keys:["Ctrl","J"], ko:"하나로 합치기", en:"Join", task:"고른 물체 여러 개를 한 물체로 합치려면?", mode:"오브젝트 모드",
+  why:"글자와 받침판을 한 물체로 만들 때", where:["Object","Join"], origin:"J = Join(잇다)", near:["sd","booluni","p"]},
+ {id:"l", cat:3, keys:["L"], ko:"붙은 덩어리 고르기", en:"Select Linked", task:"마우스 밑에 붙은 덩어리 전체를 고르려면?", mode:"편집 모드",
+  why:"여러 덩어리 중 하나만 통째로 고를 때", where:["Select","Select Linked","Linked"], origin:"L = Linked(이어진). 마우스를 그 덩어리 위에 두고 누름", near:["a","click","p"]},
+ /* ④ 옮기기·돌리기·키우기 */
+ {id:"g", cat:4, keys:["G"], ko:"옮기기", en:"Move", task:"물체를 옮기려면?", mode:"오브젝트·편집 모드",
+  why:"키링 구멍 자리로 원기둥을 옮길 때", where:["Object","Transform","Move"], origin:"G = Grab(잡다) — 잡아서 옮긴다", near:["r","s","axis"]},
+ {id:"r", cat:4, keys:["R"], ko:"돌리기", en:"Rotate", task:"물체를 돌리려면?", mode:"오브젝트·편집 모드",
+  why:"글자를 판 위에 눕히려고 90° 돌릴 때", where:["Object","Transform","Rotate"], origin:"R = Rotate(돌리다)", near:["g","s","ar"]},
+ {id:"s", cat:4, keys:["S"], ko:"크기 바꾸기", en:"Scale", task:"물체 크기를 키우거나 줄이려면?", mode:"오브젝트·편집 모드",
+  why:"네임택 판을 키우거나 줄일 때", where:["Object","Transform","Scale"], origin:"S = Scale(배율·크기)", gloss:"Scale = 배율 — 몇 배로 키웠나(1 = 원래 크기)", near:["g","r","as"]},
+ {id:"axis", cat:4, keys:["G","X"], ko:"한 방향으로만 옮기기", en:"Axis Lock", task:"좌우(X) 방향으로만 옮기려면?", mode:"오브젝트·편집 모드",
+  why:"구멍 칼을 옆으로만 15mm 옮길 때", where:["G 누른 뒤","X · Y · Z"], origin:"G·R·S 다음 X(좌우) · Y(앞뒤) · Z(위아래) = 그 방향으로만. 숫자를 치면 그만큼", near:["g","ag","s"]},
+ {id:"ag", cat:4, keys:["Alt","G"], ko:"위치를 0으로", en:"Clear Location", task:"옮긴 물체를 한가운데(0, 0, 0)로 되돌리려면?", mode:"오브젝트 모드",
+  why:"물체가 어디 갔는지 모를 때 한가운데로 불러올 때", where:["Object","Clear","Location"], origin:"Alt = 없던 일로 + G(옮기기) → 옮긴 걸 없던 일로", near:["ar","as","g"]},
+ {id:"ar", cat:4, keys:["Alt","R"], ko:"회전을 0으로", en:"Clear Rotation", task:"돌린 물체를 처음 각도로 되돌리려면?", mode:"오브젝트 모드",
+  why:"이리저리 돌려 삐뚤어진 걸 바로 세울 때", where:["Object","Clear","Rotation"], origin:"Alt + R(돌리기) → 돌린 걸 없던 일로", near:["ag","as","r"]},
+ {id:"as", cat:4, keys:["Alt","S"], ko:"크기를 처음대로 (배율 1)", en:"Clear Scale", task:"키우거나 줄인 배율을 처음(1)으로 되돌리려면?", mode:"오브젝트 모드 (편집 모드에선 부풀리기)",
+  why:"S 로 잘못 늘린 걸 원래 크기로", where:["Object","Clear","Scale"], origin:"Alt + S(크기) → 키운 걸 없던 일로", near:["ag","ar","ca"]},
+ {id:"ss", cat:4, keys:["Shift","S"], ko:"스냅 메뉴 (커서 보내기)", en:"Snap", task:"3D 커서를 고른 것 가운데로 보내는 메뉴를 열려면?", mode:"오브젝트·편집 모드",
+  why:"새 원기둥을 꼭 그 자리에 만들려고 커서를 먼저 옮길 때", where:["Object","Snap","Cursor to Selected"], origin:"S = Snap(착 붙이기). 동그란 메뉴가 떠요 — Shift 가족의 예외", near:["sa","as","s"]},
+ /* ⑤ N 칸 숫자로 정확히 */
+ {id:"dims", cat:5, kind:"menu", keys:["Dimensions"], ko:"치수 (실제 크기 mm)", en:"Dimensions", task:"물체의 실제 가로·세로·높이(mm)를 숫자로 넣는 칸은?", mode:"N 칸 · Item 탭",
+  why:"네임택을 가로 40mm로 정확히 맞출 때", where:["N 칸","Item","Dimensions"], origin:"Dimension = 치수", near:["loc","rot","units"]},
+ {id:"loc", cat:5, kind:"menu", keys:["Location"], ko:"위치 (X · Y · Z)", en:"Location", task:"물체가 놓인 자리를 숫자로 넣는 칸은?", mode:"N 칸 · Item 탭",
+  why:"구멍 칼을 판 가운데(X 0)로 보낼 때", where:["N 칸","Item","Location"], origin:"Location = 자리. X 좌우 · Y 앞뒤 · Z 위아래", near:["dims","rot","ag"]},
+ {id:"rot", cat:5, kind:"menu", keys:["Rotation"], ko:"회전 각도", en:"Rotation", task:"물체를 몇 도 돌렸는지 숫자로 넣는 칸은?", mode:"N 칸 · Item 탭",
+  why:"글자를 X 90°로 정확히 세울 때", where:["N 칸","Item","Rotation"], origin:"Rotation = 돌린 각도(°)", near:["loc","dims","ar"]},
+ {id:"ca", cat:5, keys:["Ctrl","A"], then:"Scale", ko:"크기 굳히기 (배율을 1로)", en:"Apply › Scale", task:"늘린 크기를 배율 1로 굳히려면?", mode:"오브젝트 모드",
+  why:"크기를 바꾼 뒤 배율을 1로 굳혀야 치수·베벨이 제대로 나와서", where:["Object","Apply","Scale"], origin:"A = Apply(적용하다). Ctrl+A 문을 열고 Scale", gloss:"Apply = 효과·변형을 진짜 모양으로 굳히기", near:["applyall","modapply","as"]},
+ {id:"origin", cat:5, kind:"menu", keys:["Set Origin"], ko:"원점(주황 점) 옮기기", en:"Set Origin", task:"물체의 기준점(주황 점)을 모양 가운데로 옮기려면?", mode:"오브젝트 모드",
+  why:"돌리거나 키울 때 엉뚱한 곳을 중심으로 돌지 않게", where:["Object","Set Origin","Origin to Geometry"], origin:"Origin = 원점(기준점). 돌리기·키우기의 중심", near:["ss","loc","applyall"]},
+ /* ⑥ 편집 모드 */
+ {id:"tab", cat:6, keys:["Tab"], ko:"편집 모드 ↔ 오브젝트 모드", en:"Edit Mode", task:"점·선·면을 고치는 모드로 들어가려면?", mode:"3D 화면 어디서나",
+  why:"판 모양을 점·선·면으로 고치려면 편집 모드로 들어가야 해서", where:["왼쪽 위 「Object Mode」 칸","Edit Mode"], origin:"Tab = 두 모드를 왔다 갔다", gloss:"Object Mode = 물체 통째로 다루는 상태", near:["e","k3","n"]},
+ {id:"k1", cat:6, keys:["1"], ctx:"위쪽 숫자줄", ko:"점 고르기 모드", en:"Vertex Select", task:"편집 모드에서 점(꼭짓점) 단위로 고르려면?", mode:"편집 모드",
+  why:"꼭짓점 하나를 옮길 때", where:["3D 화면 왼쪽 위","점 아이콘"], origin:"위쪽 숫자줄 1 점 · 2 선 · 3 면 — 숫자가 클수록 큰 조각", near:["k2","k3","tab"]},
+ {id:"k2", cat:6, keys:["2"], ctx:"위쪽 숫자줄", ko:"선 고르기 모드", en:"Edge Select", task:"편집 모드에서 선(모서리) 단위로 고르려면?", mode:"편집 모드",
+  why:"모서리 한 줄을 깎으려고 고를 때", where:["3D 화면 왼쪽 위","선 아이콘"], origin:"위쪽 숫자줄 1 점 · 2 선 · 3 면 — 숫자가 클수록 큰 조각", near:["k1","k3","cb"]},
+ {id:"k3", cat:6, keys:["3"], ctx:"위쪽 숫자줄", ko:"면 고르기 모드", en:"Face Select", task:"편집 모드에서 면 단위로 고르려면?", mode:"편집 모드",
+  why:"윗면을 골라 뽑아 올릴 때", where:["3D 화면 왼쪽 위","면 아이콘"], origin:"위쪽 숫자줄 1 점 · 2 선 · 3 면 — 숫자가 클수록 큰 조각", near:["k1","k2","e"]},
+ {id:"e", cat:6, keys:["E"], ko:"면 뽑기 (돌출)", en:"Extrude", task:"고른 면을 밀어서 뽑아내려면?", mode:"편집 모드",
+  why:"납작한 면을 위로 뽑아 3mm 두께를 세울 때", where:["Mesh","Extrude","Extrude Faces"], origin:"E = Extrude(밀어내다) — 치약 짜듯 늘린다", gloss:"Extrude = 돌출 — 점·선·면을 밀어서 뽑아냄", near:["i","s","tab"]},
+ {id:"i", cat:6, keys:["I"], ko:"안쪽 테두리 면 만들기", en:"Inset", task:"면 안쪽에 한 겹 작은 면을 만들려면?", mode:"편집 모드",
+  why:"판 가장자리 테두리를 남기고 가운데를 파낼 때", where:["Face","Inset Faces"], origin:"I = Inset(안으로 넣다)", near:["e","cb","f"]},
+ {id:"cr", cat:6, keys:["Ctrl","R"], ko:"고리 줄 넣기", en:"Loop Cut", task:"면을 한 바퀴 빙 둘러 줄을 하나 더 넣으려면?", mode:"편집 모드",
+  why:"판을 둘로 나눠 한쪽만 두껍게 할 때", where:["Edge","Loop Cut and Slide"], origin:"외우는 꾀: R = Ring(고리). ⚠ 뱀부에선 Ctrl+R = 슬라이스", near:["cb","i","e"]},
+ {id:"cb", cat:6, keys:["Ctrl","B"], ko:"모서리 깎기", en:"Bevel", task:"고른 모서리를 둥글게·비스듬히 깎으려면?", mode:"편집 모드",
+  why:"손에 닿는 판 모서리를 부드럽게 할 때", where:["Edge","Bevel Edges"], origin:"B = Bevel(깎기). 휠을 굴리면 둥근 조각 수가 늘어요", near:["cr","i","bevmod"]},
+ {id:"m", cat:6, keys:["M"], then:"By Distance", ko:"겹친 점 합치기", en:"Merge › By Distance", task:"같은 자리에 겹친 점들을 하나로 합치려면?", mode:"편집 모드",
+  why:"합친 뒤 생긴 겹친 점 때문에 출력이 깨질 때", where:["Mesh","Merge","By Distance"], origin:"M = Merge(합치다). M 이 문, By Distance 는 메뉴에서 고름", near:["p","f","nonman"]},
+ {id:"p", cat:6, keys:["P"], then:"Selection", ko:"고른 부분 떼어 내기", en:"Separate › Selection", task:"고른 면만 따로 한 물체로 떼어 내려면?", mode:"편집 모드",
+  why:"붙어 있는 고리만 떼어 따로 고칠 때", where:["Mesh","Separate","Selection"], origin:"외우는 꾀: P = Part(조각). 블렌더 이름은 Separate(떼어 내기)", near:["m","cj","l"]},
+ {id:"f", cat:6, keys:["F"], ko:"면 채우기", en:"Fill (New Face)", task:"고른 점·선 사이를 면으로 막으려면?", mode:"편집 모드",
+  why:"뚫린 구멍 테두리를 골라 막을 때", where:["Vertex","New Edge/Face from Vertices"], origin:"F = Face·Fill(면·채우기). ⚠ 뱀부에선 F = 누른 면을 바닥으로", near:["m","i","e"]},
+ /* ⑦ 모디파이어 */
+ {id:"addmod", cat:7, kind:"menu", keys:["Add Modifier"], ko:"모디파이어 더하기", en:"Add Modifier", task:"모양을 망가뜨리지 않고 효과(구멍·두께 등)를 얹는 단추는?", mode:"속성 창 · 렌치 탭",
+  why:"구멍·두께·둥글기를 나중에 숫자로 고칠 수 있게", where:["속성 창","렌치 탭","Add Modifier"], origin:"Modifier = 바꿔 주는 것. 렌치(스패너) 아이콘 탭", near:["booldiff","solid","modapply"]},
+ {id:"booldiff", cat:7, kind:"menu", keys:["Difference"], ko:"빼기 — 구멍 내기", en:"Boolean › Difference", task:"원기둥 모양대로 판에 구멍을 내는 불리언 연산은?", mode:"속성 창 · 렌치 탭",
+  why:"키링 고리 구멍을 뚫을 때", where:["Add Modifier","Generate","Boolean","Difference"], origin:"Difference = 차이, 빼고 남은 것", near:["booluni","engrave","solid"]},
+ {id:"booluni", cat:7, kind:"menu", keys:["Union"], ko:"합치기 — 한 덩어리로", en:"Boolean › Union", task:"두 덩어리를 겉면까지 한 덩어리로 녹여 합치는 연산은?", mode:"속성 창 · 렌치 탭",
+  why:"고리를 판에 단단히 붙일 때", where:["Add Modifier","Generate","Boolean","Union"], origin:"Union = 합집합, 하나로 묶음", near:["booldiff","emboss","cj"]},
+ {id:"solid", cat:7, kind:"menu", keys:["Solidify"], ko:"두께 주기", en:"Solidify", task:"얇은 면에 두께(mm)를 주는 모디파이어는?", mode:"속성 창 · 렌치 탭",
+  why:"얇은 판이나 컵 벽에 2mm 두께를 줄 때", where:["Add Modifier","Generate","Solidify","Thickness"], origin:"Solid = 단단한 → 속이 찬 두께", near:["bevmod","array","booldiff"]},
+ {id:"bevmod", cat:7, kind:"menu", keys:["Bevel"], ctx:"모디파이어", ko:"모서리 둥글게 (효과)", en:"Bevel Modifier", task:"모서리를 Amount·Segments 숫자로 둥글게 하는 모디파이어는?", mode:"속성 창 · 렌치 탭",
+  why:"판 전체 모서리를 한 번에 둥글게 할 때", where:["Add Modifier","Generate","Bevel","Amount · Segments"], origin:"편집 모드 Ctrl+B 와 같은 깎기를 효과로 얹은 것", near:["cb","solid","mirror"]},
+ {id:"array", cat:7, kind:"menu", keys:["Array"], ko:"줄 세워 복사", en:"Array", task:"같은 모양을 간격 맞춰 여러 개 복사하는 모디파이어는?", mode:"속성 창 · 렌치 탭",
+  why:"네임택 5개를 나란히 놓을 때", where:["Add Modifier","Generate","Array","Count"], origin:"Array = 배열, 줄 세우기", near:["mirror","sd","solid"]},
+ {id:"mirror", cat:7, kind:"menu", keys:["Mirror"], ko:"거울 복사", en:"Mirror", task:"반쪽만 만들면 반대편을 똑같이 만들어 주는 모디파이어는?", mode:"속성 창 · 렌치 탭",
+  why:"좌우가 똑같은 강아지 얼굴을 반만 만들 때", where:["Add Modifier","Generate","Mirror"], origin:"Mirror = 거울", near:["array","bevmod","sd"]},
+ {id:"modapply", cat:7, keys:["Ctrl","A"], ctx:"모디파이어 칸 위에서", ko:"모디파이어 굳히기", en:"Apply Modifier", task:"모디파이어 효과를 진짜 모양으로 굳히려면? (마우스는 모디파이어 칸 위)", mode:"속성 창 · 렌치 탭",
+  why:"구멍 낸 결과를 확정하고 칼을 지울 때", where:["모디파이어 칸 ⌄","Apply"], origin:"Ctrl+A = Apply(굳히기) — 마우스가 어디 있느냐로 대상이 달라요", near:["ca","applyall","addmod"]},
+ /* ⑧ 출력 전 검사·내보내기 */
+ {id:"faceor", cat:8, kind:"menu", keys:["Face Orientation"], ko:"면 방향 보기 (파랑 좋음 · 빨강 문제)", en:"Face Orientation", task:"면이 뒤집힌 곳을 빨강으로 보여 주는 표시는?", mode:"3D 화면 오른쪽 위",
+  why:"뽑기 전에 뒤집힌 면이 없는지 볼 때", where:["Overlays ⌄","Face Orientation"], origin:"Orientation = 향한 방향. 겉 = 파랑, 뒤집힘 = 빨강", near:["stats","nonman","altz"]},
+ {id:"stats", cat:8, kind:"menu", keys:["Statistics"], ko:"점·면 개수 보기", en:"Statistics", task:"점·면 개수를 화면 구석에 띄우는 표시는?", mode:"3D 화면 오른쪽 위",
+  why:"면이 너무 많아 무거운지 볼 때", where:["Overlays ⌄","Statistics"], origin:"Statistics = 통계", near:["faceor","nonman","units"]},
+ {id:"nonman", cat:8, kind:"menu", keys:["Non Manifold"], ko:"구멍·찢어진 곳 고르기", en:"Non Manifold", task:"출력이 깨질 뚫린 곳·찢어진 곳을 골라 주는 메뉴는?", mode:"편집 모드 (점·선 고르기)",
+  why:"STL 로 내보내기 전 마지막 검사", where:["Select","Select All by Trait","Non Manifold"], origin:"Manifold = 빈틈없이 닫힌 것. Non = 아닌 것", near:["faceor","m","stats"]},
+ {id:"altz", cat:8, keys:["Alt","Z"], ko:"비춰 보기 (엑스레이)", en:"Toggle X-Ray", task:"물체 속을 비춰 보이게 켜고 끄려면?", mode:"3D 화면 위에서",
+  why:"판 속에 숨은 구멍 칼을 보면서 고를 때", where:["3D 화면 오른쪽 위","X-Ray 단추"], origin:"Alt 가족의 예외 — 누를 때마다 켜고 끄기", near:["h","faceor","aa"]},
+ {id:"applyall", cat:8, keys:["Ctrl","A"], then:"All Transforms", ko:"위치·회전·크기 한꺼번에 굳히기", en:"Apply › All Transforms", task:"내보내기 전에 위치·회전·크기를 한꺼번에 굳히려면?", mode:"오브젝트 모드",
+  why:"뱀부에서 크기·방향이 엉뚱하게 나오지 않게", where:["Object","Apply","All Transforms"], origin:"Ctrl+A 문을 열고 맨 위 All Transforms", near:["ca","modapply","export"]},
+ {id:"export", cat:8, kind:"menu", keys:["Export STL"], ko:"STL 로 내보내기", en:"Export › STL", task:"3D 프린터용 STL 파일로 저장하려면?", mode:"어디서나",
+  why:"뱀부 스튜디오로 가져가려고", where:["File","Export","STL (.stl)"], origin:"Export = 밖으로 내보내기. STL = 프린터가 읽는 파일", near:["cs","applyall","nonman"]},
+ /* ⑨ 키링·케이스 숫자 규칙 (FDM 일반값) */
+ {id:"hole", cat:9, kind:"num", keys:["+0.4mm"], ko:"작은 구멍 보정 (지름에 더함)", en:"Hole Compensation", task:"지름 5mm 이하 구멍은 그린 것보다 작게 나와요. 지름에 얼마를 더하나요?", mode:"출력 숫자",
+  why:"지름 4mm 쇠고리가 들어갈 구멍을 4.4mm로 그릴 때", where:["반지름 +0.2mm = 지름 +0.4mm","5mm 넘는 구멍은 반지름 +0.1mm"], origin:"구멍은 늘 작게 나온다 → 더한다", near:["slide","press","wall"]},
+ {id:"slide", cat:9, kind:"num", keys:["한쪽 0.2mm"], ko:"스르륵 끼움 틈", en:"Sliding Fit", task:"뚜껑이 스르륵 끼고 빠지게 하려면 틈을 얼마나 두나요?", mode:"출력 숫자",
+  why:"케이스 뚜껑이 빡빡하지 않게", where:["한쪽 +0.2mm","지름으로는 +0.4mm"], origin:"10mm 막대가 들어갈 구멍 = 10.4mm", near:["press","hole","over"]},
+ {id:"press", cat:9, kind:"num", keys:["0.1~0.3mm 작게"], ko:"꽉 끼움 (눌러 박기)", en:"Press Fit", task:"한 번 끼우면 안 빠지게 꽉 박으려면 구멍을 어떻게?", mode:"출력 숫자",
+  why:"자석이나 핀을 꽉 박아 둘 때", where:["구멍을 0.1~0.3mm 작게","10mm 막대 → 9.8~9.9mm 구멍"], origin:"작게 만들어 눌러 넣는다", near:["slide","hole","wall"]},
+ {id:"wall", cat:9, kind:"num", keys:["1.2 · 1.6 · 2.4mm"], ko:"벽 두께 (최소 · 권장 · 튼튼)", en:"Wall Thickness", task:"벽은 최소 몇 mm, 튼튼하게는 몇 mm?", mode:"출력 숫자",
+  why:"얇으면 누를 때 깨져서", where:["최소 1.2 (노즐 0.4 × 3줄)","권장 1.6","튼튼 2.4"], origin:"0.4mm 노즐 한 줄 × 3 = 1.2", near:["over","hole","slide"]},
+ {id:"over", cat:9, kind:"num", keys:["45°"], ko:"서포트 없이 기울일 수 있는 한계", en:"Overhang Limit", task:"서포트 없이 뽑을 수 있는 기울기 한계는?", mode:"출력 숫자",
+  why:"턱이 더 누우면 아래가 처져서 서포트가 필요해요", where:["45° 넘게 누우면 서포트","바닥에서 잰 각도"], origin:"반쯤 기운 지붕까지는 혼자 선다", near:["wall","press","slide"]},
+ /* ⑩ 글자 (이름 키링) */
+ {id:"addtext", cat:10, keys:["Shift","A"], then:"Text", ko:"글자 물체 만들기", en:"Add › Text", task:"이름 글자를 새로 만들려면?", mode:"오브젝트 모드",
+  why:"키링에 넣을 이름을 만들 때", where:["Add","Text"], origin:"Shift+A 문을 열고 Text. 글자를 고칠 땐 Tab → 지우고 치기 → Tab", near:["sa","convert","extr"]},
+ {id:"extr", cat:10, kind:"menu", keys:["Extrude"], ctx:"글자 칸", ko:"글자 두께", en:"Text › Geometry › Extrude", task:"글자에 두께(mm)를 주는 칸은?", mode:"속성 창 · 글자(a) 탭",
+  why:"글자를 1.5mm 두께로 세울 때", where:["속성 창","글자(a) 탭","Geometry","Extrude"], origin:"편집 모드 E(면 뽑기)와 같은 말 — 글자는 칸에 숫자로", near:["convert","e","solid"]},
+ {id:"convert", cat:10, kind:"menu", keys:["Convert → Mesh"], ko:"글자를 모양(메시)으로 굳히기", en:"Convert › Mesh", task:"글자를 점·선·면 모양으로 바꿔 굳히려면?", mode:"오브젝트 모드",
+  why:"굳혀야 불리언·합치기·내보내기가 제대로 돼서", where:["Object","Convert","Mesh"], origin:"Convert = 바꾸다. 굳힌 뒤엔 글자를 못 고쳐요", near:["extr","addtext","applyall"]},
+ {id:"engrave", cat:10, kind:"word", keys:["음각"], ko:"글자를 판에 파 넣기", en:"Engrave · Boolean Difference", task:"판에 이름을 움푹 파서 넣는 걸 뭐라고 하나요?", mode:"글자 키링",
+  why:"손에 닿아도 글자가 안 닳게", where:["글자 → Convert → Mesh","판에 Boolean","Difference"], origin:"음(陰) = 들어간 것", near:["emboss","booldiff","convert"]},
+ {id:"emboss", cat:10, kind:"word", keys:["양각"], ko:"글자를 판 위에 볼록 붙이기", en:"Emboss · Union / Ctrl+J", task:"판 위에 이름을 볼록 튀어나오게 붙이는 걸 뭐라고 하나요?", mode:"글자 키링",
+  why:"글자만 다른 색으로 뽑기 좋게", where:["글자를 판 위에 올림","Boolean Union 또는 Ctrl+J"], origin:"양(陽) = 튀어나온 것", near:["engrave","booluni","cj"]},
+];
+const BY = Object.fromEntries(CARDS.map(c=>[c.id,c]));
+
+/* 가족 — 앞 키에 뜻 붙이기 · 문 + 고르기 (버튼 많은 키 외우는 꾀) */
+const FAMS = [
+ {id:"alt", title:"Alt = 없던 일로", desc:"옮기기·돌리기·크기·고르기·숨기기 키에 Alt 를 더하면 처음으로 되돌려요.", members:["ag","ar","as","aa","ah"], ex:"예외: Alt+Z(비춰 보기 켜고 끄기) · 편집 모드의 Alt+S(부풀리기)"},
+ {id:"shift", title:"Shift = 새로 · 하나 더", desc:"이미 아는 키에 Shift 를 더하면 하나 더 만들거나 더 고르는 쪽이에요.", members:["sa","sd","shclick"], ex:"예외: Shift+S(스냅 메뉴)"},
+ {id:"ctrl", title:"Ctrl = 굳히거나 크게 바꾸는 명령", desc:"외우기 쉽게 묶은 꾀예요. 블렌더 공식 규칙은 아니에요.", members:["ca","modapply","cj","cr","cb","cz","cs"]},
+ {id:"door", title:"앞 키 = 메뉴 문", desc:"앞 키만 외우면 메뉴가 떠요. 뒤(점선 칸)는 화면에서 읽고 고르면 돼요.", members:["ca","applyall","m","p","addtext","ss"]},
+ {id:"grs", title:"G · R · S 와 X · Y · Z", desc:"G 옮기기 · R 돌리기 · S 크기. 바로 뒤에 X(좌우) · Y(앞뒤) · Z(위아래)를 누르면 그 방향으로만.", members:["g","r","s","axis"]},
+ {id:"np", title:"숫자패드 = 보는 방향", desc:"1 앞 · 3 오른쪽 · 7 위. Ctrl 을 같이 누르면 반대쪽(뒤 · 왼쪽 · 아래).", members:["np1","np3","np7","npdot"]},
+ {id:"wheel", title:"가운데 휠 하나로 세 가지", desc:"굴리기 = 당기기 · 누른 채 끌기 = 돌리기 · Shift + 누른 채 끌기 = 밀기", members:["wheel","mmb","smmb"]},
+ {id:"sel", title:"위쪽 숫자줄 1 · 2 · 3", desc:"편집 모드에서 1 점 · 2 선 · 3 면. 숫자가 클수록 큰 조각.", members:["k1","k2","k3"]},
+];
+const famsOf = id => FAMS.filter(f=>f.members.includes(id));
+
+/* 눌러서 맞히기 재료 */
+const MODS = ["Ctrl","Shift","Alt"];
+const KEY_FINALS = ["A","D","G","H","J","R","S","Z","B","E","X"];
+const MOUSE_FINALS = ["클릭","휠 누른 채 끌기","휠 굴리기","오른쪽 클릭"];
+const THENS = ["Scale","All Transforms","Rotation","Location","By Distance","At Center","Selection","By Material","Text","Mesh","Cursor to Selected"];
+
+/*SRS-START — 일정 규칙(복습설계안 §4 · learning-principles §2). 순수 함수만. */
+const SRS = (() => {
+  const INTERVALS = [0,1,3,7,14,30,60];   // 상자 1→1일, 2→3일, 3→7일, 4→14일, 5→30일, 6→60일 (제안값)
+  const NEW_PER_DAY = 5, BACKLOG_PAUSE = 30, GAPS = [1,3,Infinity];
+  const addDays = (day,n) => { const d = new Date(day+"T00:00:00Z"); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); };
+  const blank = () => ({box:0,due:null,okDays:[],right:0,wrong:0,graded:null,intro:null});
+  // 하루 첫 답만 일정을 바꾼다. 처음 배운 날은 무조건 상자 1 · 내일.
+  function grade(st, ok, today){
+    const s = {...st, okDays:[...(st.okDays||[])]};
+    if (ok) s.right++; else s.wrong++;
+    if (s.intro === today){ s.box = 1; s.due = addDays(today,1); s.graded = today; return s; }
+    if (s.graded === today) return s;
+    if (ok){ s.box = Math.min(s.box+1,6); s.due = addDays(today, INTERVALS[s.box]); if(!s.okDays.includes(today)) s.okDays.push(today); }
+    else { s.box = 1; s.due = addDays(today,1); }
+    s.graded = today; return s;
+  }
+  const learned = st => (st.okDays||[]).length >= 3;
+  const isDue = (st,today) => st.box>0 && st.due && st.due <= today;
+  // 회차 안: 새 카드·틀린 카드는 1장 뒤 → 약 3장 뒤 → 맨 끝. 연달아 내지 않음.
+  function reinsert(queue, entry){
+    const gap = GAPS[Math.min(entry.attempt-1, GAPS.length-1)];
+    const q = queue.slice();
+    if (gap === Infinity || gap >= q.length) q.push(entry); else q.splice(Math.max(1,gap), 0, entry);
+    return q;
+  }
+  return {INTERVALS, NEW_PER_DAY, BACKLOG_PAUSE, addDays, blank, grade, learned, isDue, reinsert};
+})();
+/*SRS-END*/
+
+/* ===== 저장 =====
+   1) 클로드 아티팩트 안이면 그 저장칸(db)
+   2) 아니면 구글시트(기록다리.gs 웹 앱) — 로그인 없이, 폰·PC 어디서나
+   3) 둘 다 안 되면 이 기기에 먼저 적어 두고, 시트에 닿으면 저절로 보냄 */
+const REMOTE_DEFAULT = {"url":"https://script.google.com/macros/s/AKfycbzpR8uJw5ycFdH7lg6sGKzAjuTVjtJpkEpu9NSNj3jUBnZnbLLmAdQHdQ6CBJW4-a8y/exec","token":"BRAVO-yK8BjwmzHLkD"};   // 기록다리.gs 배포 뒤 채움
+const today = () => new Date().toLocaleDateString("sv-SE");
+const items = {};            // itemId → state ("g.k" 키→뜻, "g.f" 할 일→키)
+let days = {};               // date → {secs, answered, correct, wrongs:[]}
+let db = null, where = "loading", REMOTE = null;
+const ITEM_IDS = CARDS.flatMap(c=>[c.id+".k", c.id+".f"]);
+const safe = (k,v) => { try{ if(v===undefined) return JSON.parse(localStorage.getItem(k)||"null"); localStorage.setItem(k,JSON.stringify(v)); }catch(e){ return null; } };
+const docId = id => id.replace(".","_");
+const cacheLocal = () => { safe("bk.items", items); safe("bk.days", days); };
+let outbox = safe("bk.outbox") || [];
+
+function readRemoteCfg(){
+  try{
+    const h = location.hash.slice(1);
+    if (h.includes("s=") && h.includes("t=")){
+      const p = new URLSearchParams(h), url = p.get("s"), token = p.get("t");
+      if (url && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url) && token){ safe("bk.remote",{url,token}); history.replaceState(null,"",location.pathname+location.search); }
+    }
+  }catch(e){}
+  const r = safe("bk.remote");
+  if (r && r.url && r.token) REMOTE = r;
+  else if (REMOTE_DEFAULT.url && REMOTE_DEFAULT.token) REMOTE = REMOTE_DEFAULT;
+}
+function queuePut(kind,id,body){
+  outbox = outbox.filter(x=>!(x.kind===kind && x.id===id)); outbox.push({kind,id,body});
+  safe("bk.outbox", outbox); scheduleFlush();
+}
+let flushT = null, flushing = false;
+function scheduleFlush(){ clearTimeout(flushT); flushT = setTimeout(flush, 1200); }
+async function flush(){
+  if (flushing || !outbox.length || !REMOTE) return;
+  flushing = true; const batch = outbox.slice(0,40);
+  try{
+    const r = await fetch(REMOTE.url, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({token:REMOTE.token, puts:batch}), redirect:"follow"});
+    const j = await r.json();
+    if (j && j.ok){ outbox = outbox.filter(x=>!batch.includes(x)); safe("bk.outbox", outbox); if (where==="sheet-off") where = "sheet"; }
+  }catch(e){}
+  flushing = false;
+  if (outbox.length) flushT = setTimeout(flush, 15000);
+}
+
+async function load(){
+  ITEM_IDS.forEach(id=>items[id]=SRS.blank());
+  const li = safe("bk.items"), ld = safe("bk.days");
+  if (li) Object.keys(li).forEach(k=>{ if(items[k]) items[k] = {...SRS.blank(), ...li[k]}; });
+  if (ld) days = ld;
+  const timeout = () => new Promise((_,rej)=>setTimeout(()=>rej({code:"timeout"}),10000));
+  try{ db = await (window.claude?.use ? window.claude.use("db") : null); }catch(e){ db = null; }
+  if (db){
+    try{
+      const [is, ds] = await Promise.race([Promise.all([db.collection("items").get(), db.collection("days").get()]), timeout()]);
+      is.docs.forEach(d=>{ const v=d.data(); if(v && v.item && items[v.item]) items[v.item] = {...SRS.blank(), ...v}; });
+      ds.docs.forEach(d=>{ days[d.id] = d.data(); });
+      where = "db"; cacheLocal(); return;
+    }catch(e){ db = null; }
+  }
+  readRemoteCfg();
+  if (!REMOTE){ where = "local"; return; }
+  try{
+    const j = await Promise.race([fetch(REMOTE.url+"?op=read&token="+encodeURIComponent(REMOTE.token), {redirect:"follow"}).then(r=>r.json()), timeout()]);
+    if (!j || !j.ok) throw j;
+    const ri = j.items || {}, rd = j.days || {};
+    Object.entries(ri).forEach(([k,v])=>{ if(!items[k]) return; const loc = items[k]; if (!loc.at || (v.at||0) >= loc.at) items[k] = {...SRS.blank(), ...v}; else queuePut("items",k,{...loc,item:k}); });
+    Object.keys(items).forEach(k=>{ if (items[k].at && !ri[k]) queuePut("items",k,{...items[k],item:k}); });
+    Object.entries(rd).forEach(([d,v])=>{ const loc = days[d]; if (!loc || (v.answered||0) >= (loc.answered||0)) days[d] = v; else queuePut("days",d,loc); });
+    Object.keys(days).forEach(d=>{ if (!rd[d]) queuePut("days",d,days[d]); });
+    where = "sheet"; cacheLocal(); flush();
+  }catch(e){ where = "sheet-off"; if (outbox.length) scheduleFlush(); }
+}
+let writing = Promise.resolve();
+function saveItem(id){
+  items[id] = {...items[id], at:Date.now()};
+  const body = {...items[id], item:id};
+  cacheLocal();
+  if (where==="db") writing = writing.then(()=>db.doc("items/"+docId(id)).set(body)).catch(()=>{});
+  else if (REMOTE) queuePut("items", id, body);
+}
+let dayDirty = false;
+function saveDay(){
+  const d = today(); if(!dayDirty) return; dayDirty = false;
+  const body = {...days[d]};
+  cacheLocal();
+  if (where==="db") writing = writing.then(()=>db.doc("days/"+d).set(body)).catch(()=>{});
+  else if (REMOTE) queuePut("days", d, body);
+}
+function storeNote(){
+  const n = outbox.length;
+  if (where==="db") return "진도는 클로드에 저장돼요.";
+  if (where==="sheet") return "진도는 구글시트에 저장돼요. 폰·PC 어디서 열어도 이어져요."+(n?` (보내는 중 ${n}개)`:"");
+  if (where==="sheet-off") return `지금은 구글시트에 닿지 않아 이 기기에 먼저 적어 둬요. 연결되면 저절로 보내요.${n?` (보낼 기록 ${n}개)`:""}`;
+  return "진도는 이 기기에 저장돼요.";
+}
+
+/* ===== 글씨 크기 ===== */
+let fs = safe("bk.fs") || 19;
+const applyFs = () => document.documentElement.style.setProperty("--base", fs+"px");
+applyFs();
+document.getElementById("fsm").onclick = ()=>{ fs=Math.max(15,fs-2); applyFs(); safe("bk.fs",fs); };
+document.getElementById("fsp").onclick = ()=>{ fs=Math.min(29,fs+2); applyFs(); safe("bk.fs",fs); };
+
+/* ===== 화면 도우미 ===== */
+const $view = document.getElementById("view");
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const kindOf = c => c.kind || "key";
+const keysHtml = (keys,cls="") => `<span class="keys ${cls}">${keys.map(k=>`<kbd>${esc(k)}</kbd>`).join('<span class="plus">+</span>')}</span>`;
+function tokHtml(c, size=""){
+  const k = kindOf(c);
+  const core = k==="menu" ? `<span class="menu"><span>${esc(c.keys[0])}</span></span>`
+    : (k==="num" || k==="word") ? `<span class="numtok">${esc(c.keys[0])}</span>`
+    : keysHtml(c.keys);
+  const th = c.then ? `<span class="then"><em>→</em><span class="pick">${esc(c.then)}</span></span>` : "";
+  const ctx = c.ctx ? `<span class="ctx">${esc(c.ctx)}</span>` : "";
+  return `<span class="tok ${size}">${core}${th}${ctx}</span>`;
+}
+const tokText = c => c.keys.join("+") + (c.then ? "→"+c.then : "") + (c.ctx||"");
+const LBL = {key:"단축키", mouse:"마우스", menu:"메뉴 이름", num:"숫자", word:"말"};
+const WHERE_LBL = {key:"메뉴 자리", mouse:"하는 법", menu:"메뉴 자리", num:"자세히", word:"하는 법"};
+const ASK_K = {key:"이 키를 누르면?", mouse:"마우스로 이렇게 하면?", menu:"이 메뉴·칸은 무엇을 하나요?", num:"이 숫자는 어떤 규칙?", word:"이 말은 무슨 뜻?"};
+const menuHtml = c => `<div class="menu">${c.where.map(w=>`<span>${esc(w)}</span>`).join("<em>›</em>")}</div>`;
+const shuffle = a => { const b=a.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; };
+const uniq = a => [...new Set(a)];
+const dayRec = () => (days[today()] ||= {secs:0,answered:0,correct:0,wrongs:[]});
+const boxOf = c => Math.min(items[c.id+".k"].box, items[c.id+".f"].box);
+const learnedCard = c => SRS.learned(items[c.id+".k"]) && SRS.learned(items[c.id+".f"]);
+const boxesHtml = b => `<span class="boxes" title="상자 ${b}">${[1,2,3,4,5,6].map(i=>`<i class="${i<=b?"on":""}"></i>`).join("")}</span>`;
+function famHtml(f, here){
+  return `<div class="fam"><div class="ft">${esc(f.title)}</div><div class="fd">${esc(f.desc)}</div>
+    <ul>${f.members.map(id=>BY[id]).map(m=>`<li>${tokHtml(m)}<span>${m.id===here?"<b>":""}${esc(m.ko)}${m.id===here?"</b>":""}</span></li>`).join("")}</ul>
+    ${f.ex?`<div class="fx">${esc(f.ex)}</div>`:""}</div>`;
+}
+
+function weekSums(){
+  const t = today(); let tw=0, lw=0;
+  for (let i=0;i<14;i++){ const d=SRS.addDays(t,-i); const r=days[d]; if(!r) continue; if(i<7) tw+=r.correct||0; else lw+=r.correct||0; }
+  return {tw,lw};
+}
+function counts(){
+  const t = today();
+  const due = ITEM_IDS.filter(id=>SRS.isDue(items[id],t)).length;
+  const introToday = CARDS.filter(c=>items[c.id+".k"].intro===t).length;
+  const fresh = CARDS.filter(c=>items[c.id+".k"].box===0).length;
+  const paused = due > SRS.BACKLOG_PAUSE;
+  const newToday = paused ? 0 : Math.max(0, Math.min(SRS.NEW_PER_DAY - introToday, fresh));
+  return {due,newToday,fresh,paused};
+}
+
+/* ===== 첫 화면 ===== */
+function home(){
+  S = null;
+  const {due,newToday,paused} = counts();
+  const {tw,lw} = weekSums();
+  const t = today();
+  const late = ITEM_IDS.some(id=>items[id].box>0 && items[id].due && items[id].due < SRS.addDays(t,-1));
+  const cats = CATS.map(ct=>{
+    const cs = CARDS.filter(c=>c.cat===ct.n);
+    const met = cs.filter(c=>boxOf(c)>0).length, done = cs.filter(learnedCard).length;
+    return `<button class="catrow" data-n="${ct.n}"><span class="cn">${ct.n}</span><span class="ct"><b>${esc(ct.name)}</b><span>${cs.length}장 · 배운 것 ${met} · 익힘 ${done}</span></span><span class="bar"><i style="width:${Math.round(met/cs.length*100)}%"></i></span></button>`;
+  }).join("");
+  const nothing = due===0 && newToday===0;
+  $view.innerHTML = `
+  <div class="wrap">
+    <h1>${nothing ? "오늘 나올 카드는 다 했어요" : `오늘 연습 ${due + newToday*2}문제`}</h1>
+    <div class="stats">
+      <div class="stat"><b>${due}</b><span>복습할 문제</span></div>
+      <div class="stat"><b>${newToday}</b><span>새 카드</span></div>
+      <div class="stat"><b>${tw}</b><span>이번 주 맞힘${lw?` · 지난주 ${lw}`:""}</span></div>
+    </div>
+    ${late ? `<p class="note">며칠 비었어도 괜찮아요. <b>조금 늦게 복습해도 손해는 작아요.</b> 밀린 것부터 나와요.</p>` : ""}
+    ${paused ? `<p class="note">복습이 ${due}문제 밀려 있어서 오늘은 새 카드를 쉬어요.</p>` : ""}
+    <button class="big" id="go">${nothing ? "더 하기 (10분)" : "시작 (10분)"}</button>
+    <p class="note">한 번에 10분이에요. 여러 분류가 <b>섞여서</b> 나와요. 10분이 지나면 그 문제까지 하고 끝나요.</p>
+    <div class="sect">분류별 공부 · 하나 골라 훑어보고 그 분류만 풀어요</div>
+    <div class="cats">${cats}<div class="catrow soon"><span class="cn">11</span><span class="ct"><b>뱀부 스튜디오</b><span>다음 단계에 열려요</span></span><span></span></div></div>
+    <p class="note">${storeNote()}</p>
+  </div>`;
+  document.getElementById("go").onclick = () => nothing ? startMore() : startToday();
+  $view.querySelectorAll(".catrow[data-n]").forEach(b=>b.onclick=()=>catView(+b.dataset.n));
+  window.scrollTo(0,0);
+}
+
+/* ===== 분류 화면 ===== */
+function catView(n){
+  const ct = CATS.find(x=>x.n===n), cs = CARDS.filter(c=>c.cat===n);
+  const fams = FAMS.filter(f=>f.members.some(id=>BY[id].cat===n));
+  const rows = cs.map(c=>{
+    const b = boxOf(c);
+    const tag = b===0 ? `<span class="tag new">처음</span>` : learnedCard(c) ? `<span class="tag">익힘</span>` : "";
+    return `<div class="crow"><button data-id="${c.id}" aria-expanded="false"><span class="nm">${tokHtml(c)}<b>${esc(c.ko)} ${tag}</b><span class="sub">${esc(c.en)}</span></span>${boxesHtml(b)}</button><div class="detail" hidden>${cardInfo(c,false)}</div></div>`;
+  }).join("");
+  $view.innerHTML = `
+  <div class="wrap">
+    <div class="navrow"><button class="back" id="hm">← 처음 화면</button></div>
+    <h1>${n}. ${esc(ct.name)}</h1>
+    <p class="note">${esc(ct.tip)}</p>
+    ${fams.length ? `<div class="sect">외우는 꾀 · 가족으로 묶어 보기</div>${fams.map(f=>famHtml(f)).join("")}` : ""}
+    <div class="sect">카드 ${cs.length}장 · 누르면 펼쳐져요</div>
+    <div class="cards">${rows}</div>
+    <button class="big" id="go">이 분류만 문제 풀기 (${cs.length}장)</button>
+    <p class="note">처음 보는 카드는 설명부터 나오고, 내일부터 매일 10분 복습에 섞여 나와요.</p>
+  </div>`;
+  document.getElementById("hm").onclick = home;
+  document.getElementById("go").onclick = () => startCat(n);
+  $view.querySelectorAll(".crow > button").forEach(b=>b.onclick=()=>{ const d=b.nextElementSibling; d.hidden=!d.hidden; b.setAttribute("aria-expanded", String(!d.hidden)); });
+  window.scrollTo(0,0);
+}
+
+/* ===== 회차 ===== */
+let HIST = [], CUR = null;  // 지나간 카드(뒤로 보기용) · 지금 화면
+const backBtn = () => HIST.length ? `<button class="back" id="bk">← 뒤로</button>` : "";
+function bindBack(){ const b=document.getElementById("bk"); if(b) b.onclick=()=>peek(HIST.length-1); }
+function remember(id){ if(HIST[HIST.length-1]!==id) HIST.push(id); if(HIST.length>30) HIST.shift(); }
+function cardInfo(c, withFam=true){ const k = kindOf(c); return `
+    <div class="step"><div class="lb">쓰는 까닭</div><div class="vl">${esc(c.why)}</div></div>
+    <div class="step"><div class="lb">이름 뜻</div><div class="vl"><b>${esc(c.ko)}</b> <span class="en">${esc(c.en)}</span>${c.gloss?`<div style="font-size:.85em;color:var(--soft)">${esc(c.gloss)}</div>`:""}</div></div>
+    <div class="step"><div class="lb">${WHERE_LBL[k]}</div><div class="vl">${menuHtml(c)}</div></div>
+    <div class="step"><div class="lb">${LBL[k]}</div><div class="vl">${tokHtml(c,"mid")}<div style="font-size:.85em;color:var(--soft);margin-top:6px">${esc(c.origin)}</div></div></div>
+    ${withFam ? famsOf(c.id).map(f=>`<div class="step"><div class="lb">가족</div><div class="vl">${famHtml(f,c.id)}</div></div>`).join("") : ""}`; }
+function peek(pos){ // 뒤로: 지난 카드 설명을 다시 본다. 일정은 안 바뀜.
+  const c = BY[HIST[pos]];
+  if (CUR && CUR.t==="q" && CUR.item.startsWith(c.id+".")) CUR.peeked = true;
+  $view.innerHTML = `
+  <div class="wrap intro">
+    <div class="qhead"><span class="chip">지난 카드 ${pos+1} / ${HIST.length}</span><span>${esc(c.mode)}</span></div>
+    ${cardInfo(c)}
+    <div class="navrow">${pos>0?`<button class="back" id="pv">← 더 뒤로</button>`:""}${pos<HIST.length-1?`<button class="back" id="nf">앞으로 →</button>`:""}</div>
+    <button class="big" id="rt">하던 ${CUR&&CUR.t==="intro"?"설명":"문제"}으로 돌아가기</button>
+  </div>`;
+  const pv=document.getElementById("pv"), nf=document.getElementById("nf");
+  if(pv) pv.onclick=()=>peek(pos-1); if(nf) nf.onclick=()=>peek(pos+1);
+  document.getElementById("rt").onclick=()=>{ CUR.t==="intro" ? intro(CUR,true) : ask(CUR); };
+}
+let S = null;  // {queue, mode:'today'|'more'|'wrong'|'cat', activeMs, lastTick, answered, correct, wrongSet, cat}
+function buildToday(){
+  const t = today(), {newToday} = counts();
+  const due = shuffle(ITEM_IDS.filter(id=>SRS.isDue(items[id],t))).sort((a,b)=>items[a].due.localeCompare(items[b].due));
+  const fresh = CARDS.filter(c=>items[c.id+".k"].box===0).slice(0,newToday);
+  const q = []; let fi = 0;
+  due.forEach((id,i)=>{ q.push({t:"q",item:id,need:1,attempt:0,practice:false}); if(i%2===1 && fi<fresh.length) q.push({t:"intro",card:fresh[fi++].id}); });
+  while(fi<fresh.length) q.push({t:"intro",card:fresh[fi++].id});
+  return separate(q);
+}
+function separate(q){ // 같은 카드의 두 방향이 붙지 않게
+  for(let i=1;i<q.length;i++){ const a=q[i-1], b=q[i]; if(a.t==="q"&&b.t==="q"&&a.item.split(".")[0]===b.item.split(".")[0]){ const j=q.findIndex((x,k)=>k>i && !(x.t==="q"&&x.item.split(".")[0]===a.item.split(".")[0])); if(j>0){ [q[i],q[j]]=[q[j],q[i]]; } } }
+  return q;
+}
+function begin(queue, mode, cat){
+  S = {queue, mode, cat, activeMs:0, lastTick:Date.now(), answered:0, correct:0, wrongSet:new Set()};
+  next();
+}
+function startToday(){ begin(buildToday(),"today"); }
+function startMore(){
+  let q = S && S.queue.length ? S.queue : buildToday();
+  if (!q.length){ // 남은 게 없으면: 새 카드 더 → 아니면 미리 한 번 더
+    const fresh = CARDS.filter(c=>items[c.id+".k"].box===0).slice(0,SRS.NEW_PER_DAY);
+    if (fresh.length) q = fresh.map(c=>({t:"intro",card:c.id}));
+    else q = separate(shuffle(ITEM_IDS).sort((a,b)=>items[a].box-items[b].box).slice(0,12).map(id=>({t:"q",item:id,need:1,attempt:0,practice:true})));
+  }
+  begin(q,"more");
+}
+function startWrong(ids){ begin(separate(shuffle(ids).map(id=>({t:"q",item:id,need:1,attempt:0,practice:true}))),"wrong"); }
+function startCat(n){ // 분류 공부: 처음 카드는 설명부터(오늘 배운 카드로 일정에 들어감), 아는 카드는 연습(일정 안 바뀜)
+  const cs = CARDS.filter(c=>c.cat===n);
+  const intros = cs.filter(c=>items[c.id+".k"].box===0).map(c=>({t:"intro",card:c.id}));
+  const known = shuffle(cs.filter(c=>items[c.id+".k"].box>0).flatMap(c=>["k","f"].map(d=>({t:"q",item:c.id+"."+d,need:1,attempt:0,practice:true}))));
+  begin(separate([...intros, ...known]), "cat", n);
+}
+
+function tick(){ // 화면을 보고 있는 시간만 센다(한 문제에 2분 넘게 멈춰 있으면 2분까지만)
+  const now = Date.now(); S.activeMs += Math.min(now - S.lastTick, 120000); S.lastTick = now;
+}
+document.addEventListener("visibilitychange",()=>{ if(!S) return; if(document.hidden) tick(); else S.lastTick = Date.now(); });
+
+function next(){
+  tick();
+  if (S.activeMs >= 600000 || !S.queue.length) return finish();
+  const e = S.queue.shift();
+  if (e.t==="intro") return intro(e);
+  ask(e);
+}
+
+function intro(e, back){
+  const c = BY[e.card], t = today();
+  const r = dayRec();
+  if (!back && S.mode!=="cat" && r.answered>=6 && r.correct/r.answered < .5){ S.queue = S.queue.filter(x=>x.t!=="intro"); return next(); } // 정답이 절반 미만이면 새 카드 쉼
+  CUR = e;
+  $view.innerHTML = `
+  <div class="wrap intro">
+    <div class="qhead"><span class="chip">새 카드 · ${esc(CATS.find(x=>x.n===c.cat).name)}</span><span>${esc(c.mode)}</span></div>
+    ${cardInfo(c)}
+    <button class="big" id="ok">알겠어요</button>
+    ${backBtn()}
+  </div>`;
+  bindBack();
+  window.scrollTo(0,0);
+  document.getElementById("ok").onclick = () => {
+    remember(c.id);
+    ["k","f"].forEach(d=>{ const id=c.id+"."+d; items[id] = {...items[id], intro:t, box:1, due:SRS.addDays(t,1)}; saveItem(id); });
+    // 설명 → 1장 뒤 키→뜻, 약 3장 뒤 할 일→키 (새 카드는 오늘 2번 맞혀야 끝)
+    S.queue.splice(Math.min(1,S.queue.length),0,{t:"q",item:c.id+".k",need:2,attempt:1,practice:false});
+    S.queue.splice(Math.min(3,S.queue.length),0,{t:"q",item:c.id+".f",need:2,attempt:1,practice:false});
+    next();
+  };
+}
+
+function options(c, dir){ // 헷갈리는 이웃 → 같은 분류 → 같은 종류 → 나머지. 보이는 글이 겹치지 않게.
+  const label = id => dir==="k" ? BY[id].ko : tokText(BY[id]);
+  const out = [c.id], seen = new Set([label(c.id)]);
+  const add = id => { if (out.length>=4 || !BY[id] || out.includes(id)) return; const L = label(id); if (seen.has(L)) return; seen.add(L); out.push(id); };
+  shuffle(c.near||[]).forEach(add);
+  shuffle(CARDS.filter(x=>x.cat===c.cat).map(x=>x.id)).forEach(add);
+  shuffle(CARDS.filter(x=>kindOf(x)===kindOf(c)).map(x=>x.id)).forEach(add);
+  shuffle(CARDS.map(x=>x.id)).forEach(add);
+  return shuffle(out);
+}
+
+/* 눌러서 맞히기 — 할 일→키 카드가 상자 3 이상이면(4지로 2번 넘게 맞힌 뒤) 키를 직접 조립. 상자 5부터는 메뉴 고르기까지. */
+const canAsm = c => (kindOf(c)==="key" || kindOf(c)==="mouse") && c.keys.length>=2 && c.keys.slice(0,-1).every(k=>MODS.includes(k));
+function asmLevel(e,c){
+  if (!e.item.endsWith(".f") || !canAsm(c)) return 0;
+  const b = items[e.item].box;
+  if (b>=5 && c.then) return 2;
+  return b>=3 ? 1 : 0;
+}
+const chipText = e => S.mode==="wrong" ? "틀린 것 복습" : S.mode==="cat" ? "분류 연습" : e.practice ? "한 번 더" : e.item.endsWith(".k") ? "키 → 뜻" : "할 일 → 키";
+
+function ask(e){
+  const [cid, dir] = e.item.split("."), c = BY[cid];
+  CUR = e;
+  const lv = asmLevel(e,c);
+  if (lv) return askAsm(e,c,lv);
+  const opts = e.opts ||= options(c, dir);
+  const prompt = dir==="k"
+    ? `<div class="prompt">${tokHtml(c,"huge")}<div class="ask">${ASK_K[kindOf(c)]}</div></div>`
+    : `<div class="prompt"><div class="ask" style="font-size:1.35em">${esc(c.task)}</div></div>`;
+  const choice = id => dir==="k"
+    ? `<button class="choice" data-id="${id}"><span>${esc(BY[id].ko)}</span></button>`
+    : `<button class="choice" data-id="${id}">${tokHtml(BY[id],"mid")}</button>`;
+  const left = S.queue.filter(x=>x.t==="q").length;
+  $view.innerHTML = `
+  <div class="wrap">
+    <div class="qhead"><span class="chip">${chipText(e)}</span><span>${esc(c.mode)} · 남은 문제 ${left}</span></div>
+    ${prompt}
+    <div class="choices">${opts.map(choice).join("")}</div>
+    <button class="ghost" id="idk">모르겠어요 → 정답 보기</button>
+    ${backBtn()}
+  </div>`;
+  bindBack();
+  window.scrollTo(0,0);
+  $view.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
+    const pick = b.dataset.id, ok = pick===c.id;
+    $view.querySelectorAll(".choice").forEach(x=>{ x.disabled=true; if(x.dataset.id===c.id) x.classList.add("right"); else if(x.dataset.id===pick) x.classList.add("wrongpick"); });
+    const wl = ok ? "" : `<p>고르신 ${dir==="k" ? `「${esc(BY[pick].ko)}」는 ${tokHtml(BY[pick])} 예요.` : `${tokHtml(BY[pick])} 는 「${esc(BY[pick].ko)}」예요.`}</p>`;
+    settle(e,c,ok,wl);
+  });
+  document.getElementById("idk").onclick = ()=>{ $view.querySelectorAll(".choice").forEach(x=>{ x.disabled=true; if(x.dataset.id===c.id) x.classList.add("right"); }); settle(e,c,false,""); };
+}
+
+function askAsm(e,c,lv){
+  const last = c.keys[c.keys.length-1];
+  const pool = kindOf(c)==="mouse" ? MOUSE_FINALS : KEY_FINALS;
+  const lets = e.lets ||= shuffle(uniq([last, ...shuffle(pool.filter(x=>x!==last)).slice(0,3)]));
+  const thens = lv===2 ? (e.thens ||= shuffle(uniq([c.then, ...shuffle(THENS.filter(x=>x!==c.then)).slice(0,3)]))) : [];
+  const sel = {mods:new Set(), l:null, t:null};
+  const left = S.queue.filter(x=>x.t==="q").length;
+  $view.innerHTML = `
+  <div class="wrap">
+    <div class="qhead"><span class="chip">눌러서 맞히기</span><span>${esc(c.mode)} · 남은 문제 ${left}</span></div>
+    <div class="prompt"><div class="ask" style="font-size:1.35em">${esc(c.task)}</div></div>
+    <div class="asm">
+      <div class="asl">① 같이 누르는 키 (없으면 안 골라도 돼요)</div>
+      <div class="mods">${MODS.map(m=>`<button class="mk" data-m="${m}" aria-pressed="false"><kbd>${m}</kbd></button>`).join("")}</div>
+      <div class="asl">② 마지막 키</div>
+      <div class="lets">${lets.map(l=>`<button class="lk" data-l="${esc(l)}"><kbd>${esc(l)}</kbd></button>`).join("")}</div>
+      ${lv===2 ? `<div class="asl">③ 메뉴에서 고를 것</div><div class="lets">${thens.map(t=>`<button class="tk" data-t="${esc(t)}"><span class="pick">${esc(t)}</span></button>`).join("")}</div>`
+        : c.then ? `<p class="asl">③ 메뉴가 뜨면 <span class="pick">${esc(c.then)}</span> 를 고르면 돼요</p>` : ""}
+      <div class="built" id="built">고른 키가 여기 보여요</div>
+    </div>
+    <button class="big" id="chk" disabled>이렇게 누를래요</button>
+    <button class="ghost" id="idk">모르겠어요 → 정답 보기</button>
+    ${backBtn()}
+  </div>`;
+  bindBack();
+  window.scrollTo(0,0);
+  const built = document.getElementById("built"), chk = document.getElementById("chk");
+  const pressed = () => [...MODS.filter(m=>sel.mods.has(m)), sel.l].filter(Boolean);
+  const draw = () => {
+    const ks = pressed();
+    built.innerHTML = ks.length ? `<span class="tok">${keysHtml(ks)}${sel.t?`<span class="then"><em>→</em><span class="pick">${esc(sel.t)}</span></span>`:""}</span>` : "고른 키가 여기 보여요";
+    chk.disabled = !(sel.l && (lv<2 || sel.t));
+  };
+  $view.querySelectorAll(".mk").forEach(b=>b.onclick=()=>{ const m=b.dataset.m; sel.mods.has(m)?sel.mods.delete(m):sel.mods.add(m); b.classList.toggle("on",sel.mods.has(m)); b.setAttribute("aria-pressed",String(sel.mods.has(m))); draw(); });
+  $view.querySelectorAll(".lk").forEach(b=>b.onclick=()=>{ sel.l=b.dataset.l; $view.querySelectorAll(".lk").forEach(x=>x.classList.toggle("on",x===b)); draw(); });
+  $view.querySelectorAll(".tk").forEach(b=>b.onclick=()=>{ sel.t=b.dataset.t; $view.querySelectorAll(".tk").forEach(x=>x.classList.toggle("on",x===b)); draw(); });
+  const lock = () => { $view.querySelectorAll(".mk,.lk,.tk").forEach(x=>{ x.disabled=true; }); chk.remove(); };
+  chk.onclick = () => {
+    const want = c.keys.slice(0,-1);
+    const ok = want.length===sel.mods.size && want.every(m=>sel.mods.has(m)) && sel.l===last && (lv<2 || sel.t===c.then);
+    const mine = `<span class="tok">${keysHtml(pressed())}${sel.t?`<span class="then"><em>→</em><span class="pick">${esc(sel.t)}</span></span>`:""}</span>`;
+    lock(); settle(e,c,ok, ok ? "" : `<p>누르신 것: ${mine}</p>`);
+  };
+  document.getElementById("idk").onclick = ()=>{ lock(); settle(e,c,false,""); };
+}
+
+function settle(e,c,ok,wrongLine){
+  const t = today();
+  ["idk","bk","chk"].forEach(id=>{ const el=document.getElementById(id); if(el) el.remove(); });
+  remember(c.id); e.opts = null; e.lets = null; e.thens = null;
+  // 기록 — 뒤로 가서 이 카드 답을 보고 맞혔으면 일정에 안 넣고 나중에 한 번 더
+  const peeked = e.peeked && ok; e.peeked = false;
+  if (!e.practice && !peeked){ items[e.item] = SRS.grade(items[e.item], ok, t); saveItem(e.item); }
+  const r = dayRec(); r.answered++; if(ok) r.correct++; else if(!r.wrongs.includes(e.item)) r.wrongs.push(e.item);
+  S.answered++; if(ok) S.correct++; else S.wrongSet.add(e.item);
+  dayDirty = true; tick();
+  // 회차 안 다시 내기
+  e.attempt++; if (ok && !peeked) e.need--; else e.need = Math.max(e.need,1);
+  if (e.need>0) S.queue = SRS.reinsert(S.queue, e);
+  const fam = famsOf(c.id)[0];
+  const fb = document.createElement("div");
+  fb.className = "fb " + (ok?"ok":"again");
+  fb.innerHTML = `
+    <div class="head">${peeked ? "맞아요 · 설명 보고 맞힌 거라 나중에 한 번 더 나와요" : ok ? "맞아요" : "다시 나올 카드로 보냈어요"}</div>
+    <p>${tokHtml(c)} = <b>${esc(c.ko)}</b> <span class="en">${esc(c.en)}</span></p>
+    ${wrongLine}
+    ${menuHtml(c)}
+    <p class="why">${esc(c.origin)} · ${esc(c.why)}</p>
+    ${fam ? `<p class="why">가족: <b>${esc(fam.title)}</b></p>` : ""}
+    <button class="big" id="nx">다음</button>`;
+  $view.querySelector(".wrap").appendChild(fb);
+  document.getElementById("nx").onclick = ()=>{ next(); };
+  document.getElementById("nx").focus({preventScroll:true});
+  fb.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function finish(){
+  tick();
+  const r = dayRec(); r.secs = (r.secs||0) + Math.round(S.activeMs/1000); dayDirty = true; saveDay();
+  const mins = Math.max(1, Math.round(S.activeMs/60000));
+  const wrongToday = (r.wrongs||[]).slice();
+  const left = S.queue.filter(x=>x.t==="q"||x.t==="intro").length;
+  const cat = S.mode==="cat" ? S.cat : null;
+  $view.innerHTML = `
+  <div class="wrap">
+    <h1>${left ? "10분 됐어요. 오늘은 여기까지 해도 좋아요" : cat ? "이 분류 다 했어요" : "오늘 할 것 다 했어요"}</h1>
+    <div class="stats">
+      <div class="stat"><b>${mins}분</b><span>이번 연습</span></div>
+      <div class="stat"><b>${S.answered}</b><span>푼 문제</span></div>
+      <div class="stat"><b>${S.correct}</b><span>맞힘</span></div>
+    </div>
+    <p class="note">오늘 처음 본 카드는 <b>내일</b> 다시 나와요. 하루 뒤엔 차이가 잘 안 느껴져도, 날을 띄워 꺼내 본 것은 한 달 뒤에 차이가 나요.</p>
+    ${cat ? `<button class="big" id="again">이 분류 한 번 더</button>` : `<button class="big" id="more">더 하기 (10분)</button>`}
+    <button class="big alt" id="wr" ${wrongToday.length?"":"disabled"}>틀린 것 복습 (${wrongToday.length}문제)</button>
+    <button class="ghost" id="hm">처음 화면으로</button>
+  </div>`;
+  S.activeMs = 0;
+  const m = document.getElementById("more"), a = document.getElementById("again");
+  if (m) m.onclick = startMore;
+  if (a) a.onclick = ()=>startCat(cat);
+  document.getElementById("wr").onclick = ()=>startWrong(wrongToday);
+  document.getElementById("hm").onclick = home;
+  window.scrollTo(0,0);
+}
+window.addEventListener("pagehide", ()=>{
+  if(S){ tick(); const r=dayRec(); r.secs=(r.secs||0)+Math.round(S.activeMs/1000); S.activeMs=0; dayDirty=true; saveDay(); }
+  if (REMOTE && outbox.length && navigator.sendBeacon){ try{ navigator.sendBeacon(REMOTE.url, new Blob([JSON.stringify({token:REMOTE.token, puts:outbox})],{type:"text/plain;charset=utf-8"})); }catch(e){} }
+});
+
+load().then(home);
+</script>
+
+</body>
+</html>
