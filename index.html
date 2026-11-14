@@ -142,6 +142,13 @@ kbd{font-family:var(--f-key);font-weight:800;display:inline-flex;align-items:cen
 .navrow{display:flex;gap:8px;justify-content:space-between}
 .navrow .back{flex:1}
 .loading{color:var(--soft);text-align:center;padding:40px 0}
+/* 말로 풀기 · 소리 (2026-11-14) */
+.tools{display:flex;gap:8px}
+.tools button{flex:1;min-height:44px;border:1px solid var(--line);background:var(--ground);border-radius:10px;font-weight:700;font-size:.78em;padding:0 10px}
+.tools button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-wash);color:var(--accent-ink)}
+.vline{margin:0;font-size:.74em;color:var(--soft);background:var(--panel);border-radius:10px;padding:8px 12px;border:0;width:100%;text-align:left}
+.vline.live{color:var(--accent-ink);background:var(--accent-wash)}
+.choice .no{flex:none;display:inline-flex;align-items:center;justify-content:center;width:1.7em;height:1.7em;border-radius:50%;background:var(--panel);color:var(--soft);font-size:.8em;font-weight:900}
 @media (prefers-reduced-motion:no-preference){.fb,.intro,.prompt{animation:in .18s ease-out}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
 </style>
 
@@ -150,6 +157,8 @@ kbd{font-family:var(--f-key);font-weight:800;display:inline-flex;align-items:cen
     <div class="brand">블렌더 단축키 복습<small>메뉴 기능 + 단축키 · 10분류 72장</small></div>
     <div class="size"><button id="fsm" aria-label="글씨 작게">가−</button><button id="fsp" aria-label="글씨 크게">가+</button></div>
   </div>
+  <div class="tools"><button id="mic" aria-pressed="false">🎤 말로 풀기 꺼짐</button><button id="snd" aria-pressed="false">🔕 소리 꺼짐</button></div>
+  <button class="vline" id="vline" hidden></button>
   <div id="view"><p class="loading">진도를 불러오는 중이에요…</p></div>
 </div>
 
@@ -480,6 +489,115 @@ applyFs();
 document.getElementById("fsm").onclick = ()=>{ fs=Math.max(15,fs-2); applyFs(); safe("bk.fs",fs); };
 document.getElementById("fsp").onclick = ()=>{ fs=Math.min(29,fs+2); applyFs(); safe("bk.fs",fs); };
 
+/* ===== 소리 — 맞힘 = 올라가는 두 음 · 틀림 = 낮은 한 음 (2026-11-14 사장님 「틀리거나 맞추면 다르게」)
+   밤 8시~아침 8시엔 처음에 꺼짐(기억 feedback_no_sound_night). 밤에 켠 것은 그 밤만, 끈 것은 계속 꺼짐. */
+const SOUND = (() => {
+  let ac = null;
+  const night = () => { const h = new Date().getHours(); return h>=20 || h<8; };
+  const nightKey = () => { const d = new Date(); if (d.getHours()<8) d.setDate(d.getDate()-1); return d.toDateString(); };
+  const isOn = () => { const p = safe("bk.snd"); if (p && p.v==="off") return false; if (p && p.v==="on") return !night() || p.n===nightKey(); return !night(); };
+  const ctx = () => { try{ ac ||= new (window.AudioContext||window.webkitAudioContext)(); if (ac.state==="suspended") ac.resume(); }catch(e){ ac = null; } return ac; };
+  const tone = (f, t0, d, type) => { const a = ctx(); if (!a) return; const t = a.currentTime+t0, o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.22,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+d+0.03); };
+  const btn = document.getElementById("snd");
+  const draw = () => { const on = isOn(); btn.textContent = on ? "🔔 소리 켜짐" : "🔕 소리 꺼짐"; btn.setAttribute("aria-pressed", String(on)); };
+  btn.onclick = () => { if (isOn()) safe("bk.snd",{v:"off"}); else { safe("bk.snd",{v:"on", n: night()?nightKey():null}); ctx(); tone(784,0,.12,"sine"); } draw(); };
+  document.addEventListener("pointerdown", () => { if (isOn()) ctx(); }, {once:true}); // 폰은 한 번 눌러야 소리가 열림
+  draw();
+  return { ok(){ if (!isOn()) return; tone(784,0,.14,"sine"); tone(1047,.12,.22,"sine"); },
+           no(){ if (!isOn()) return; tone(196,0,.34,"triangle"); }, isOn };
+})();
+
+/* ===== 말로 풀기 — 폰 크롬 음성 인식(ko-KR). 문제가 뜨면 저절로 듣는다.
+   알아듣는 말: 「1번·첫 번째」 같은 번호 · 보기 글 그대로 · 키 이름 소리(「지」→G) · 「모르겠어」 · 「다음」·「알겠어」 */
+const VOICE = (() => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const WORDS = { "add modifier":"애드모디파이어", "control":"컨트롤", "ctrl":"컨트롤", "shift":"시프트", "alt":"알트", "tab":"탭", "home":"홈",
+    "modifier":"모디파이어", "array":"어레이", "bevel":"베벨", "mirror":"미러", "solidify":"솔리디파이", "extrude":"익스트루드", "union":"유니온",
+    "difference":"디퍼런스", "dimensions":"디멘션", "dimension":"디멘션", "location":"로케이션", "rotation":"로테이션", "scale":"스케일", "units":"유닛",
+    "statistics":"스태티스틱스", "export":"익스포트", "face":"페이스", "orientation":"오리엔테이션", "non":"논", "manifold":"매니폴드", "set":"셋",
+    "origin":"오리진", "convert":"컨버트", "mesh":"메시", "all":"올", "transforms":"트랜스폼", "by":"바이", "distance":"디스턴스", "at":"앳",
+    "center":"센터", "selection":"셀렉션", "material":"머티리얼", "text":"텍스트", "cursor":"커서", "to":"투", "selected":"셀렉티드" };
+  const LETTER = { a:"에이", b:"비", c:"씨", d:"디", e:"이", f:"에프", g:"지", h:"에이치", i:"아이", j:"제이", k:"케이", l:"엘", m:"엠", n:"엔", o:"오",
+    p:"피", q:"큐", r:"알", s:"에스", t:"티", u:"유", v:"브이", w:"더블유", x:"엑스", y:"와이", z:"제트" };
+  const SAME = [[/쥐|쮜/g,"지"],[/쉬프트|쉽트|쉬프트/g,"시프트"],[/콘트롤|컨트로/g,"컨트롤"],[/애이/g,"에이"],[/에치|에이취|에취/g,"에이치"],[/아르|알르/g,"알"],
+    [/에쓰|에스으/g,"에스"],[/엑쓰|액스/g,"엑스"],[/제드|젯트|젯/g,"제트"],[/메쉬/g,"메시"],[/트랜스폼스/g,"트랜스폼"],[/유닛스/g,"유닛"],[/디멘션스|디멘전/g,"디멘션"],
+    [/스테티스틱스/g,"스태티스틱스"],[/플러스|더하기/g,""]];
+  const norm = s => { let t = " "+String(s).toLowerCase().replace(/[→+·,.!?~]/g," ")+" ";
+    Object.keys(WORDS).sort((a,b)=>b.length-a.length).forEach(w => { t = t.replace(new RegExp(`(^|[^a-z])${w}(?=[^a-z]|$)`,"g"), (m,p)=>p+WORDS[w]); });
+    t = t.replace(/[a-z]/g, c => LETTER[c]);
+    SAME.forEach(([re,to]) => { t = t.replace(re,to); });
+    return t.replace(/[^가-힣0-9]/g,""); };
+  const tail = t => t.replace(/(이에요|예요|입니다|이요|요)$/,"");
+  const NUM = [["1","1번","일번","첫번째","첫번","첫째","하나","하나요"],["2","2번","이번","두번째","두번","둘째","둘"],["3","3번","삼번","세번째","세번","셋째","셋"],["4","4번","사번","네번째","네번","넷째","넷"]];
+  const bigr = s => { const o = []; for (let i=0;i<s.length-1;i++) o.push(s.slice(i,i+2)); return o; };
+  const dice = (a,b) => { if (a===b) return 1; if (a.length<2 || b.length<2) return 0; const A = bigr(a), B = bigr(b); let n = 0; const left = [...B];
+    A.forEach(x => { const i = left.indexOf(x); if (i>=0){ n++; left.splice(i,1); } }); return 2*n/(A.length+B.length); };
+  const score = (t,f) => { if (!f) return 0; if (t===f) return 1; let s = dice(t,f); if (t.length>=2 && f.startsWith(t)) s = Math.max(s, .6+.4*t.length/f.length); if (f.length>=2 && t.includes(f)) s = Math.max(s,.9); return s; };
+
+  // 한 번 들은 말(후보 여러 개) → 어느 단추인지
+  function decide(alts, c){
+    for (const raw of alts){
+      const t = norm(raw), tt = tail(t);
+      if (!t) continue;
+      if (c.idk && /모르|몰라|정답보|패스/.test(t)) return {el:c.idk, said:raw};
+      if (c.next && /^(다음|넘어|계속|오케이|알겠|알았|네|응|좋아)/.test(t)) return {el:c.next, said:raw};
+      if (c.choices){
+        const bare = c.choices.findIndex(x => x.forms.includes(tt));            // 보기 글과 꼭 같으면 그것
+        if (bare>=0) return {el:c.choices[bare].el, said:raw};
+        const n = NUM.findIndex(fs => fs.includes(tt));                          // 「2번」 = 두 번째 보기
+        if (n>=0 && c.choices[n]) return {el:c.choices[n].el, said:raw};
+        const sc = c.choices.map(x => Math.max(...x.forms.map(f => score(tt,f)))), best = Math.max(...sc), i = sc.indexOf(best);
+        const second = Math.max(-1, ...sc.filter((_,j)=>j!==i));
+        if (best>=.6 && best-second>=.12) return {el:c.choices[i].el, said:raw};
+      }
+    }
+    return null;
+  }
+
+  let on = !!safe("bk.mic") && !!SR, rec = null, live = false, scope = null, cmds = null, tries = 0;
+  const btn = document.getElementById("mic"), line = document.getElementById("vline");
+  const say = (txt, isLive) => { line.hidden = !txt; line.textContent = txt||""; line.classList.toggle("live", !!isLive); };
+  const draw = () => { btn.textContent = on ? "🎤 말로 풀기 켜짐" : "🎤 말로 풀기 꺼짐"; btn.setAttribute("aria-pressed", String(on)); if (!on) say(""); };
+  const alive = () => on && cmds && scope && scope.isConnected;
+  function start(){
+    if (!alive() || live) return;
+    try{
+      rec = new SR(); rec.lang = "ko-KR"; rec.interimResults = false; rec.maxAlternatives = 5; rec.continuous = false;
+      rec.onresult = ev => { const alts = [...ev.results[0]].map(a => a.transcript); handle(alts); };
+      rec.onerror = ev => { if (ev.error==="not-allowed" || ev.error==="service-not-allowed"){ on = false; safe("bk.mic",false); draw();
+        say("마이크가 막혀 있어요. 주소창 왼쪽 자물쇠 → 마이크 「허용」 뒤 🎤 를 다시 눌러 주세요."); }
+        else if (ev.error==="audio-capture"){ on = false; safe("bk.mic",false); draw(); say("마이크를 못 찾았어요. 이 기기는 손으로 눌러 주세요."); } };
+      rec.onend = () => { live = false; if (!alive()) return; if (tries<4){ tries++; setTimeout(start,300); } else say("🎤 쉬는 중 — 여기를 누르면 다시 들어요"); };
+      rec.start(); live = true; say(cmds.hint, true);
+    }catch(e){ live = false; }
+  }
+  function handle(alts){
+    if (!cmds) return;
+    const hit = decide(alts, cmds);
+    if (hit){ say(`들은 말: 「${alts[0]}」`); tries = 0; hit.el.click(); }
+    else say(`「${alts[0]}」 — 못 알아들었어요. 「1번」처럼 번호로 말해 주세요`, true);
+  }
+  // 화면마다 부른다. c = {choices:[{el,forms}], idk, next, hint} · null 이면 이 화면은 손으로만
+  function listen(c){
+    scope = $view.firstElementChild; cmds = c; tries = 0;
+    if (!on) return;
+    if (!c){ try{ rec && rec.abort(); }catch(e){} say("🎤 이 문제는 손으로 눌러서 풀어요"); return; }
+    if (live){ say(c.hint, true); return; }   // 듣는 중이면 끝난 뒤 새 화면 것으로 이어 들음
+    setTimeout(start, 450);                    // 맞힘·틀림 소리가 마이크에 안 들어가게 조금 뒤
+  }
+  btn.onclick = () => {
+    if (!SR){ say("이 브라우저는 말 인식이 안 돼요. 안드로이드 크롬에서 돼요."); return; }
+    on = !on; safe("bk.mic", on); draw();
+    if (on){ tries = 0; if (cmds) start(); else say("🎤 문제가 뜨면 들어요", true); } else { try{ rec && rec.abort(); }catch(e){} }
+  };
+  line.onclick = () => { if (on && cmds){ tries = 0; start(); } };
+  draw();
+  window.__voice = alts => handle([].concat(alts));   // 시험용: 들은 말을 글자로 넣어 본다
+  return { listen, norm, decide };
+})();
+
 /* ===== 화면 도우미 ===== */
 const $view = document.getElementById("view");
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -682,6 +800,7 @@ function intro(e, back){
     S.queue.splice(Math.min(3,S.queue.length),0,{t:"q",item:c.id+".f",need:2,attempt:1,practice:false});
     next();
   };
+  VOICE.listen({ next: document.getElementById("ok"), hint: "🎤 듣는 중 — 다 읽으셨으면 「알겠어」라고 말해 주세요" });
 }
 
 function options(c, dir){ // 헷갈리는 이웃 → 같은 분류 → 같은 종류 → 나머지. 보이는 글이 겹치지 않게.
@@ -714,9 +833,9 @@ function ask(e){
   const prompt = dir==="k"
     ? `<div class="prompt">${tokHtml(c,"huge")}<div class="ask">${ASK_K[kindOf(c)]}</div></div>`
     : `<div class="prompt"><div class="ask" style="font-size:1.35em">${esc(c.task)}</div></div>`;
-  const choice = id => dir==="k"
-    ? `<button class="choice" data-id="${id}"><span>${esc(BY[id].ko)}</span></button>`
-    : `<button class="choice" data-id="${id}">${tokHtml(BY[id],"mid")}</button>`;
+  const choice = (id,i) => dir==="k"
+    ? `<button class="choice" data-id="${id}"><span class="no" aria-hidden="true">${i+1}</span><span>${esc(BY[id].ko)}</span></button>`
+    : `<button class="choice" data-id="${id}"><span class="no" aria-hidden="true">${i+1}</span>${tokHtml(BY[id],"mid")}</button>`;
   const left = S.queue.filter(x=>x.t==="q").length;
   $view.innerHTML = `
   <div class="wrap">
@@ -735,6 +854,12 @@ function ask(e){
     settle(e,c,ok,wl);
   });
   document.getElementById("idk").onclick = ()=>{ $view.querySelectorAll(".choice").forEach(x=>{ x.disabled=true; if(x.dataset.id===c.id) x.classList.add("right"); }); settle(e,c,false,""); };
+  VOICE.listen({
+    choices: [...$view.querySelectorAll(".choice")].map(b => { const o = BY[b.dataset.id];
+      const forms = dir==="k" ? [VOICE.norm(o.ko)] : [VOICE.norm(tokText(o)).replace(/키/g,""), VOICE.norm(o.keys.join(" ")).replace(/키/g,"")];
+      return {el:b, forms:[...new Set(forms.filter(Boolean))]}; }),
+    idk: document.getElementById("idk"),
+    hint: "🎤 듣는 중 — 「1번」처럼 번호나 보기 글을 말해 주세요 · 「모르겠어」도 돼요" });
 }
 
 function askAsm(e,c,lv){
@@ -781,6 +906,7 @@ function askAsm(e,c,lv){
     lock(); settle(e,c,ok, ok ? "" : `<p>누르신 것: ${mine}</p>`);
   };
   document.getElementById("idk").onclick = ()=>{ lock(); settle(e,c,false,""); };
+  VOICE.listen(null); // 키 조립은 손으로 (2026-11-14 결정)
 }
 
 function settle(e,c,ok,wrongLine){
@@ -810,6 +936,8 @@ function settle(e,c,ok,wrongLine){
   $view.querySelector(".wrap").appendChild(fb);
   document.getElementById("nx").onclick = ()=>{ next(); };
   document.getElementById("nx").focus({preventScroll:true});
+  ok ? SOUND.ok() : SOUND.no();
+  VOICE.listen({ next: document.getElementById("nx"), hint: "🎤 듣는 중 — 「다음」이라고 말하면 넘어가요" });
   fb.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 
