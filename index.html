@@ -101,7 +101,7 @@ kbd{font-family:var(--f-key);font-weight:800;display:inline-flex;align-items:cen
 .pick{font-family:var(--f-key);font-weight:700;font-size:.82em;border:2px dashed var(--accent);color:var(--accent-ink);background:var(--ground);border-radius:6px;padding:2px 8px;white-space:nowrap}
 .ctx{font-size:.66em;color:var(--soft);font-weight:500}
 .numtok{font-family:var(--f-key);font-weight:800;color:var(--accent-ink);background:var(--accent-wash);border-radius:8px;padding:2px 10px;white-space:nowrap}
-.choice .numtok,.fb .numtok{white-space:normal}  /* 긴 메뉴 이름(Extrude Faces Along Normals)이 칸 밖으로 안 나가게 */
+.choice .numtok,.fb .numtok,.crow .numtok,.orow .numtok,.step .numtok{white-space:normal}  /* 긴 메뉴 이름(Extrude Faces Along Normals)·긴 시험 키가 칸 밖으로 안 나가게 */
 /* menu path like Blender's dark menu */
 .menu{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-family:var(--f-key);font-weight:600;font-size:.78em}
 .menu span{background:var(--menu-bg);color:var(--menu-ink);padding:4px 9px;border-radius:5px}
@@ -187,7 +187,7 @@ const CATS = [
  {n:11, name:"뱀부 단축키", tip:"뱀부 스튜디오 준비 화면에서 누르는 키. A · N 은 블렌더와 하는 일이 달라요"},
  {n:12, name:"뱀부 오른쪽 클릭·도구 줄", tip:"물체를 오른쪽 클릭하거나 도구 줄에서 여는 것"},
  {n:13, name:"뱀부 설정 어느 탭에", tip:"왼쪽 「프로세스」 탭(품질 · 강도 · 속도 · 서포트 · 기타) 어디에 있나. 못 찾으면 🔍 에 이름을 쳐요"},
- {n:14, name:"내가 고른 연습", tip:"PC 대시보드 🧊 3D 연습에서 「📱 폰에 넣기」를 누른 연습의 단계예요. 다른 분류에 이미 있는 키는 빠져요"},
+ {n:14, name:"해 본 연습 시험", tip:"PC 🧊 3D 연습에서 한 번이라도 해 본 연습의 시험 문제예요. 할 일을 보고 누를 키를 골라요 — 연습할수록 저절로 늘어요"},
  {n:15, name:"메뉴 이름 · 필기", tip:"블렌더 화면의 영어 메뉴·칸 이름. 하는 일을 보고 영어 이름을 골라요 — 보기는 헷갈리는 같은 무리끼리 나와요"},
 ];
 const CARDS = [
@@ -500,12 +500,11 @@ const PICK_CAT = 14;
 const isExtraId = k => /^(pc|pk|x)\./.test(k);
 let EXTRA = {}, PCREC = {}, OUT = {at:0, ids:[]};
 const keyNorm = s => String(s).replace(/\([^)]*\)/g,"").replace(/\s+/g,"").toLowerCase();
-const cardNorm = c => keyNorm(c.keys.join("+") + (c.then ? "→"+c.then : ""));
-function setPicked(){ // 고른 연습의 단계 → 카드 (다른 카드와 같은 키 · 키 아닌 단계(클릭·눈으로 확인)는 뺌)
+function setPicked(){ // 해 본 연습의 시험 문제 → ⑭ 카드 (11-15 📱 단추 → 저절로). 한 방향(시험 글 → 키) · ⑭ 안에서 같은 키는 한 번 · 키 아닌 단계(클릭·눈으로 확인)·문제 없는 단계는 뺌
   for (let i=CARDS.length-1;i>=0;i--) if (CARDS[i].cat===PICK_CAT){ delete BY[CARDS[i].id]; CARDS.splice(i,1); }
   for (let i=ITEM_IDS.length-1;i>=0;i--) if (!BY[ITEM_IDS[i].split(".")[0]]) ITEM_IDS.splice(i,1);
-  const have = new Set(CARDS.map(cardNorm));
-  Object.entries(EXTRA).filter(([k,v])=>k.startsWith("pk.") && v && v.on).sort(([,a],[,b])=>(a.at||0)-(b.at||0)).forEach(([k,v])=>{
+  const have = new Set();
+  Object.entries(EXTRA).filter(([k,v])=>k.startsWith("pk.") && v && v.on && v.test).sort(([,a],[,b])=>(a.at||0)-(b.at||0)).forEach(([k,v])=>{
     (v.steps||[]).forEach((st,i)=>{
       const n = keyNorm(st.k);
       if (!/[a-z0-9]/.test(n) || !st.m || have.has(n)) return; have.add(n);
@@ -514,10 +513,9 @@ function setPicked(){ // 고른 연습의 단계 → 카드 (다른 카드와 �
       let task = st.m; // 할 일 글에 답 키가 그대로 있으면 □ 로 가린다
       keys.join(" ").split(/[\s+→]+/).filter(t=>/^[A-Za-z0-9]+$/.test(t)).forEach(t=>{ task = task.replace(new RegExp(`(^|[^A-Za-z0-9])${t}(?![A-Za-z0-9])`,"g"), "$1□"); });
       const id = "p"+k.slice(3)+"s"+i;
-      const c = {id, cat:PICK_CAT, keys, kind:isKey?"key":"word", ko:st.m, en:v.name||"", task:task+" — 어떻게 하나요?", mode:"PC 연습 · "+(v.name||""),
-        why:`PC 연습 「${v.name||""}」 ${i+1}단계`, where:[v.name||"", `${i+1}단계`], origin:"PC 대시보드에서 「📱 폰에 넣기」로 고른 연습이에요", near:[], pcN:v.n||0};
-      CARDS.push(c); BY[id] = c; ITEM_IDS.push(id+".k", id+".f");
-      ["k","f"].forEach(d=>{ if(!items[id+"."+d]) items[id+"."+d] = SRS.blank(); });
+      const c = {id, cat:PICK_CAT, one:true, keys, kind:isKey?"key":"word", ko:st.m, en:v.name||"", task:task+" — 어떻게 하나요?", mode:"시험 · "+(v.name||""),
+        why:`PC 연습 「${v.name||""}」 ${i+1}단계`, where:[v.name||"", `${i+1}단계`], origin:"PC에서 해 본 연습의 시험 문제예요", near:[], pcN:v.n||0};
+      CARDS.push(c); BY[id] = c; dirsOf(c).forEach(d=>{ ITEM_IDS.push(id+"."+d); if(!items[id+"."+d]) items[id+"."+d] = SRS.blank(); });
     });
   });
 }
@@ -810,7 +808,7 @@ function home(){
   const cats = CATS.map(ct=>{
     const cs = liveCards().filter(c=>c.cat===ct.n), outN = CARDS.filter(c=>c.cat===ct.n && isOut(c)).length;
     const met = cs.filter(c=>boxOf(c)>0).length, done = cs.filter(learnedCard).length;
-    if (!cs.length && !outN) return `<div class="catrow soon"><span class="cn">${ct.n}</span><span class="ct"><b>${esc(ct.name)}</b><span>${ct.n===PICK_CAT ? "아직 없어요 · PC 3D 연습에서 📱 를 누르면 들어와요" : "카드 없음"}</span></span><span class="bar"><i style="width:0%"></i></span></div>`;
+    if (!cs.length && !outN) return `<div class="catrow soon"><span class="cn">${ct.n}</span><span class="ct"><b>${esc(ct.name)}</b><span>${ct.n===PICK_CAT ? "아직 없어요 · PC 3D 연습에서 연습을 하나 끝내면 들어와요" : "카드 없음"}</span></span><span class="bar"><i style="width:0%"></i></span></div>`;
     if (!cs.length) return `<button class="catrow" data-n="${ct.n}"><span class="cn">${ct.n}</span><span class="ct"><b>${esc(ct.name)}</b><span>뺀 카드 ${outN}장</span></span><span class="bar"><i style="width:0%"></i></span></button>`;
     return `<button class="catrow" data-n="${ct.n}"><span class="cn">${ct.n}</span><span class="ct"><b>${esc(ct.name)}</b><span>${cs.length}장 · 배운 것 ${met} · 익힘 ${done}</span></span><span class="bar"><i style="width:${Math.round(met/cs.length*100)}%"></i></span></button>`;
   }).join("");
@@ -843,7 +841,7 @@ function catView(n){
   const rows = cs.map((c,i)=>{
     const b = boxOf(c);
     const tag = b===0 ? `<span class="tag new">처음</span>` : learnedCard(c) ? `<span class="tag">익힘</span>` : "";
-    const grp = n===WORD_CAT && (i===0 || cs[i-1].mode!==c.mode) ? `<div class="sect">${esc(c.where[0])}</div>` : "";   // 낱말은 무리마다 제목
+    const grp = (n===WORD_CAT || n===PICK_CAT) && (i===0 || cs[i-1].mode!==c.mode) ? `<div class="sect">${esc(c.where[0])}</div>` : "";   // 낱말은 무리마다 · 시험은 연습마다 제목
     return grp + `<div class="crow"><button data-id="${c.id}" aria-expanded="false"><span class="nm">${tokHtml(c)}<b>${esc(c.ko)} ${tag}</b><span class="sub">${esc(c.en)}</span></span>${boxesHtml(b)}</button><div class="detail" hidden>${cardInfo(c,false)}<button class="ghost" data-out="${c.id}">복습에서 빼기</button></div></div>`;
   }).join("");
   $view.innerHTML = `
@@ -993,7 +991,7 @@ function asmLevel(e,c){
   if (b>=5 && c.then) return 2;
   return b>=3 ? 1 : 0;
 }
-const chipText = e => S.mode==="wrong" ? "틀린 것 복습" : S.mode==="cat" ? "분류 연습" : e.practice ? "한 번 더" : e.item.endsWith(".k") ? "키 → 뜻" : BY[e.item.split(".")[0]].one ? "쓰임 → 영어 이름" : "할 일 → 키";
+const chipText = e => S.mode==="wrong" ? "틀린 것 복습" : S.mode==="cat" ? "분류 연습" : e.practice ? "한 번 더" : e.item.endsWith(".k") ? "키 → 뜻" : BY[e.item.split(".")[0]].cat===WORD_CAT ? "쓰임 → 영어 이름" : BY[e.item.split(".")[0]].cat===PICK_CAT ? "시험 → 키" : "할 일 → 키";
 
 function ask(e){
   const [cid, dir] = e.item.split("."), c = BY[cid];
@@ -1003,7 +1001,7 @@ function ask(e){
   const opts = e.opts ||= options(c, dir);
   const prompt = dir==="k"
     ? `<div class="prompt">${tokHtml(c,"huge")}<div class="ask">${ASK_K[kindOf(c)]}</div></div>`
-    : `<div class="prompt"><div class="ask" style="font-size:1.35em">${esc(c.task)}</div>${c.one?`<div class="ask">블렌더 화면에선 영어로 뭐라고 써 있나요?</div>`:""}</div>`;
+    : `<div class="prompt"><div class="ask" style="font-size:1.35em">${esc(c.task)}</div>${c.cat===WORD_CAT?`<div class="ask">블렌더 화면에선 영어로 뭐라고 써 있나요?</div>`:""}</div>`;
   const choice = (id,i) => dir==="k"
     ? `<button class="choice" data-id="${id}"><span class="no" aria-hidden="true">${i+1}</span><span>${esc(BY[id].ko)}</span></button>`
     : `<button class="choice" data-id="${id}"><span class="no" aria-hidden="true">${i+1}</span>${tokHtml(BY[id],"mid")}</button>`;
@@ -1145,7 +1143,20 @@ window.addEventListener("pagehide", ()=>{
   beaconOut();
 });
 
-load().then(home);
+/* 새 판 저절로 받기 (11-15 「폰에 내용이 안 바뀌였던데?」 — 폰 브라우저가 옛 페이지를 들고 있었음) — 공개만들기.mjs 가 BUILD 를 채움.
+   열 때·다시 볼 때 새 주소로 페이지를 몰래 받아 BUILD 가 다르면 바꿔 끼움. 문제 푸는 중(S)엔 안 끊음 — 처음 화면으로 오면 그때. */
+const BUILD = "782b6715f2";
+async function checkBuild(){
+  if (!BUILD || S) return;
+  try{
+    const h = await (await fetch(location.pathname+"?b="+Date.now(), {cache:"no-store"})).text();
+    const m = h.match(/const BUILD = "([0-9a-f]+)"/);
+    if (m && m[1]!==BUILD && !S) location.replace(location.pathname+"?v="+m[1]+location.hash);
+  }catch(e){}
+}
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkBuild(); });
+
+load().then(()=>{ home(); checkBuild(); });
 </script>
 
 </body>
