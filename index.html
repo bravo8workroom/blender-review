@@ -72,9 +72,9 @@ h1{font-size:1.5em;line-height:1.3;margin:0;text-wrap:balance;letter-spacing:-.0
 .crow .tok .menu{font-size:.66em}
 .crow .detail{padding:0 0 14px}
 .icons{display:flex;gap:6px;flex:none}
-.icb{width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--ground);color:var(--soft);font-size:1.15em;line-height:1;padding:0;opacity:.55}
-.icb.on{opacity:1;border-color:var(--accent);background:var(--accent-wash);color:var(--accent-ink)}
-.qhead .icb{width:36px;height:36px}
+.icb{width:36px;height:40px;border:0;background:none;color:#b4bcc5;font-size:1.25em;font-weight:400;line-height:1;padding:0}   /* ☆ · − 같은 연회색, 테두리·바탕 없음 (사장님 11-16) */
+.icb[data-out]{font-size:1.6em}
+.qhead .icb{height:36px}
 .fb .icons{justify-content:flex-end;margin:6px 0 10px}
 .boxes{display:flex;gap:3px}
 .boxes i{width:9px;height:14px;border-radius:3px;background:var(--line)}
@@ -693,8 +693,8 @@ function toggleMine(key, cid){ // 빼기 · ★ 별표 켜고 끄기 — 일정�
 }
 const toggleOut = cid => toggleMine("x.out", cid);    // 복습에서 빼기 ↔ 되돌리기 — 문제·숫자에서만 뺀다
 const toggleStar = cid => toggleMine("x.star", cid);  // ★ 별표 — 첫 화면 「별표만 공부」로 모아 풀기 (11-16)
-const iconsHtml = c => `<span class="icons"><button class="icb${isStar(c)?" on":""}" data-star="${c.id}" aria-pressed="${isStar(c)}" title="별표 — 모아서 집중 공부" aria-label="별표">${isStar(c)?"★":"☆"}</button><button class="icb${isOut(c)?" on":""}" data-out="${c.id}" aria-pressed="${isOut(c)}" title="문제에서 빼기" aria-label="문제에서 빼기">🚫</button></span>`;
-function iconBind(root, c, onOut){ // 문제·설명·답 뒤 화면의 ☆ · 🚫 — 그 자리에서 바뀜, 빼면 이번 회차에서도 그 카드 문제를 지움
+const iconsHtml = c => `<span class="icons"><button class="icb${isStar(c)?" on":""}" data-star="${c.id}" aria-pressed="${isStar(c)}" title="별표 — 모아서 집중 공부" aria-label="별표">${isStar(c)?"★":"☆"}</button><button class="icb${isOut(c)?" on":""}" data-out="${c.id}" aria-pressed="${isOut(c)}" title="문제에서 빼기" aria-label="문제에서 빼기">−</button></span>`;
+function iconBind(root, c, onOut){ // 문제·설명·답 뒤 화면의 ☆ · − — 그 자리에서 바뀜, 빼면 이번 회차에서도 그 카드 문제를 지움
   root.querySelectorAll("[data-star]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); toggleStar(c.id); const on=isStar(c); b.classList.toggle("on",on); b.textContent=on?"★":"☆"; b.setAttribute("aria-pressed",String(on)); });
   root.querySelectorAll("[data-out]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); toggleOut(c.id); const on=isOut(c); b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on));
     if (on && S) S.queue = S.queue.filter(x=>(x.card || x.item.split(".")[0])!==c.id); if (onOut) onOut(on); });
@@ -1253,7 +1253,7 @@ window.addEventListener("pagehide", ()=>{
 
 /* 새 판 저절로 받기 (11-15 「폰에 내용이 안 바뀌였던데?」 — 폰 브라우저가 옛 페이지를 들고 있었음) — 공개만들기.mjs 가 BUILD 를 채움.
    열 때·다시 볼 때 새 주소로 페이지를 몰래 받아 BUILD 가 다르면 바꿔 끼움. 문제 푸는 중(S)엔 안 끊음 — 처음 화면으로 오면 그때. */
-const BUILD = "e3dea81996";
+const BUILD = "f1999b39f5";
 async function checkBuild(){
   if (!BUILD || S) return;
   try{
