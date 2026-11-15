@@ -63,13 +63,19 @@ h1{font-size:1.5em;line-height:1.3;margin:0;text-wrap:balance;letter-spacing:-.0
 /* card rows inside a category */
 .cards{display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .crow{border-bottom:1px solid var(--line)}
-.crow > button{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:var(--ground);padding:10px 0;min-height:56px}
+.crow .top{display:flex;align-items:center;gap:6px}
+.crow .main{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:var(--ground);padding:10px 0;min-height:56px}
 .crow .nm{min-width:0;display:flex;flex-direction:column;gap:4px}
 .crow .nm b{font-size:.92em}
 .crow .nm .sub{font-size:.72em;color:var(--soft)}
 .crow .tok kbd{font-size:.74em}
 .crow .tok .menu{font-size:.66em}
 .crow .detail{padding:0 0 14px}
+.icons{display:flex;gap:6px;flex:none}
+.icb{width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--ground);color:var(--soft);font-size:1.15em;line-height:1;padding:0;opacity:.55}
+.icb.on{opacity:1;border-color:var(--accent);background:var(--accent-wash);color:var(--accent-ink)}
+.qhead .icb{width:36px;height:36px}
+.fb .icons{justify-content:flex-end;margin:6px 0 10px}
 .boxes{display:flex;gap:3px}
 .boxes i{width:9px;height:14px;border-radius:3px;background:var(--line)}
 .boxes i.on{background:var(--accent)}
@@ -558,7 +564,8 @@ let outbox = safe("bk.outbox") || [];
    pc.rec = PC 서버가 맞춘 카드별 「PC에서 해 봄」 횟수 · pk.<해시> = 「📱 폰에 넣기」 고른 연습 → ⑭ 카드 · x.out = 복습에서 뺀 카드 */
 const PICK_CAT = 14;
 const isExtraId = k => /^(pc|pk|x)\./.test(k);
-let EXTRA = {}, PCREC = {}, OUT = {at:0, ids:[]};
+let EXTRA = {}, PCREC = {}, OUT = {at:0, ids:[]}, STAR = [];
+const MINE = ["x.out","x.star"];   // 폰에서 고르는 줄(빼기 · ★ 별표) — 늦게 바꾼 쪽이 이김
 const keyNorm = s => String(s).replace(/\([^)]*\)/g,"").replace(/\s+/g,"").toLowerCase();
 function setPicked(){ // PC 연습 전부의 시험 문제 → ⑭ 카드 (11-15 19:27 「중급도 · 초급 포함 · 자주 쓰는 거 위주로」). 한 방향(시험 글 → 키) · ⑭ 안에서 같은 키는 한 번 · 키 아닌 단계·문제 없는 단계는 뺌
   // 순서 = 많은 연습에 나오는 키 먼저 → 같으면 PC에서 해 본 것 → 기초 → 중급. 같은 키가 여러 연습에 있으면 이미 배우기 시작한 카드(id)를 그대로 살린다
@@ -596,9 +603,11 @@ function setPicked(){ // PC 연습 전부의 시험 문제 → ⑭ 카드 (11-15
 function applyExtra(){
   PCREC = (EXTRA["pc.rec"] && EXTRA["pc.rec"].rec) || {};
   const o = EXTRA["x.out"]; OUT = o ? {at:o.at||0, ids:Array.isArray(o.ids)?o.ids:[]} : {at:0, ids:[]};
+  const st = EXTRA["x.star"]; STAR = st && Array.isArray(st.ids) ? st.ids : [];
   setPicked();
 }
 const isOut = c => OUT.ids.includes(c.id);
+const isStar = c => STAR.includes(c.id);
 const liveCards = () => CARDS.filter(c=>!isOut(c));
 const liveIds = () => ITEM_IDS.filter(id=>!OUT.ids.includes(id.split(".")[0]));
 const pcCount = c => c.cat===PICK_CAT ? c.pcN : PCREC[c.id];
@@ -656,9 +665,9 @@ async function load(){
     const j = await Promise.race([fetch(REMOTE.url+"?op=read&token="+encodeURIComponent(REMOTE.token), {redirect:"follow"}).then(r=>r.json()), timeout()]);
     if (!j || !j.ok) throw j;
     const ri = j.items || {}, rd = j.days || {};
-    Object.keys(EXTRA).forEach(k=>{ if (k!=="x.out" && !ri[k]) delete EXTRA[k]; });     // PC 줄은 시트가 정본
-    Object.keys(ri).filter(isExtraId).forEach(k=>{ if (k==="x.out" && (EXTRA[k]?.at||0) > (ri[k].at||0)) return; EXTRA[k] = ri[k]; });
-    if (EXTRA["x.out"] && (!ri["x.out"] || (EXTRA["x.out"].at||0) > (ri["x.out"].at||0))) queuePut("items","x.out",EXTRA["x.out"]);
+    Object.keys(EXTRA).forEach(k=>{ if (!MINE.includes(k) && !ri[k]) delete EXTRA[k]; });     // PC 줄은 시트가 정본
+    Object.keys(ri).filter(isExtraId).forEach(k=>{ if (MINE.includes(k) && (EXTRA[k]?.at||0) > (ri[k].at||0)) return; EXTRA[k] = ri[k]; });
+    MINE.forEach(k=>{ if (EXTRA[k] && (!ri[k] || (EXTRA[k].at||0) > (ri[k].at||0))) queuePut("items",k,EXTRA[k]); });
     applyExtra(); safe("bk.extra", EXTRA);
     Object.entries(ri).forEach(([k,v])=>{ if(!items[k]) return; const loc = items[k]; if (!loc.at || (v.at||0) >= loc.at) items[k] = {...SRS.blank(), ...v}; else queuePut("items",k,{...loc,item:k}); });
     Object.keys(items).forEach(k=>{ if (items[k].at && !ri[k]) queuePut("items",k,{...items[k],item:k}); });
@@ -675,13 +684,22 @@ function saveItem(id){
   if (where==="db") writing = writing.then(()=>db.doc("items/"+docId(id)).set(body)).catch(()=>{});
   else if (REMOTE) queuePut("items", id, body);
 }
-function toggleOut(cid){ // 복습에서 빼기 ↔ 되돌리기 — 일정은 그대로 두고 문제·숫자에서만 뺀다
-  const s = new Set(OUT.ids); s.has(cid) ? s.delete(cid) : s.add(cid);
-  const body = {item:"x.out", at:Date.now(), ids:[...s]};
-  EXTRA["x.out"] = body; applyExtra(); safe("bk.extra", EXTRA);
-  if (where==="db") writing = writing.then(()=>db.doc("items/x_out").set(body)).catch(()=>{});
-  else if (REMOTE) queuePut("items", "x.out", body);
+function toggleMine(key, cid){ // 빼기 · ★ 별표 켜고 끄기 — 일정은 그대로, 시트로 다른 기기와 맞춤
+  const s = new Set((EXTRA[key] && EXTRA[key].ids) || []); s.has(cid) ? s.delete(cid) : s.add(cid);
+  const body = {item:key, at:Date.now(), ids:[...s]};
+  EXTRA[key] = body; applyExtra(); safe("bk.extra", EXTRA);
+  if (where==="db") writing = writing.then(()=>db.doc("items/"+key.replace(".","_")).set(body)).catch(()=>{});
+  else if (REMOTE) queuePut("items", key, body);
 }
+const toggleOut = cid => toggleMine("x.out", cid);    // 복습에서 빼기 ↔ 되돌리기 — 문제·숫자에서만 뺀다
+const toggleStar = cid => toggleMine("x.star", cid);  // ★ 별표 — 첫 화면 「별표만 공부」로 모아 풀기 (11-16)
+const iconsHtml = c => `<span class="icons"><button class="icb${isStar(c)?" on":""}" data-star="${c.id}" aria-pressed="${isStar(c)}" title="별표 — 모아서 집중 공부" aria-label="별표">${isStar(c)?"★":"☆"}</button><button class="icb${isOut(c)?" on":""}" data-out="${c.id}" aria-pressed="${isOut(c)}" title="문제에서 빼기" aria-label="문제에서 빼기">🚫</button></span>`;
+function iconBind(root, c, onOut){ // 문제·설명·답 뒤 화면의 ☆ · 🚫 — 그 자리에서 바뀜, 빼면 이번 회차에서도 그 카드 문제를 지움
+  root.querySelectorAll("[data-star]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); toggleStar(c.id); const on=isStar(c); b.classList.toggle("on",on); b.textContent=on?"★":"☆"; b.setAttribute("aria-pressed",String(on)); });
+  root.querySelectorAll("[data-out]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); toggleOut(c.id); const on=isOut(c); b.classList.toggle("on",on); b.setAttribute("aria-pressed",String(on));
+    if (on && S) S.queue = S.queue.filter(x=>(x.card || x.item.split(".")[0])!==c.id); if (onOut) onOut(on); });
+}
+function startStar(){ begin(separate(shuffle(liveCards().filter(isStar).flatMap(c=>dirsOf(c).map(d=>({t:"q",item:c.id+"."+d,need:1,attempt:0,practice:true}))))),"star"); }
 let dayDirty = false;
 function saveDay(){
   const d = today(); if(!dayDirty) return; dayDirty = false;
@@ -889,9 +907,9 @@ function home(){
     const met = cs.filter(c=>boxOf(c)>0).length, done = cs.filter(learnedCard).length;
     if (!cs.length && !outN) return `<div class="catrow soon"><span class="cn">${ct.n}</span><span class="ct"><b>${esc(ct.name)}</b><span>${ct.n===PICK_CAT ? "아직 없어요 · PC 🧊 3D 연습 화면을 한 번 열면 들어와요" : "카드 없음"}</span></span><span class="bar"><i style="width:0%"></i></span></div>`;
     if (!cs.length) return `<button class="catrow" data-n="${ct.n}"><span class="cn">${ct.n}</span><span class="ct"><b>${esc(ct.name)}</b><span>뺀 카드 ${outN}장</span></span><span class="bar"><i style="width:0%"></i></span></button>`;
-    return `<button class="catrow" data-n="${ct.n}"><span class="cn">${ct.n}</span><span class="ct"><b>${esc(ct.name)}</b><span>${cs.length}장 · 배운 것 ${met} · 익힘 ${done}</span></span><span class="bar"><i style="width:${Math.round(met/cs.length*100)}%"></i></span></button>`;
+    return `<button class="catrow" data-n="${ct.n}"><span class="cn">${ct.n}</span><span class="ct"><b>${esc(ct.name)}</b><span>${cs.length}장 · 배운 것 ${met} · 익힘 ${done}${cs.some(isStar) ? ` · ★ ${cs.filter(isStar).length}` : ""}</span></span><span class="bar"><i style="width:${Math.round(met/cs.length*100)}%"></i></span></button>`;
   }).join("");
-  const nothing = due===0 && newToday===0;
+  const nothing = due===0 && newToday===0, starN = liveCards().filter(isStar).length;
   $view.innerHTML = `
   <div class="wrap">
     <h1>${nothing ? "오늘 나올 카드는 다 했어요" : `오늘 연습 ${due + newToday*2}문제`}</h1>
@@ -903,12 +921,14 @@ function home(){
     ${late ? `<p class="note">며칠 비었어도 괜찮아요. <b>조금 늦게 복습해도 손해는 작아요.</b> 밀린 것부터 나와요.</p>` : ""}
     ${paused ? `<p class="note">복습이 ${due}문제 밀려 있어서 오늘은 새 카드를 쉬어요.</p>` : ""}
     <button class="big" id="go">${nothing ? "더 하기 (10분)" : "시작 (10분)"}</button>
+    ${starN ? `<button class="big alt" id="star" style="margin-top:10px">★ 별표 ${starN}장만 공부</button>` : ""}
     <p class="note">한 번에 10분이에요. 여러 분류가 <b>섞여서</b> 나와요. 10분이 지나면 그 문제까지 하고 끝나요.</p>
     <div class="sect">분류별 공부 · 하나 골라 훑어보고 그 분류만 풀어요</div>
     <div class="cats">${cats}</div>
     <p class="note">${storeNote()}</p>
   </div>`;
   document.getElementById("go").onclick = () => nothing ? startMore() : startToday();
+  const sb = document.getElementById("star"); if (sb) sb.onclick = startStar;
   $view.querySelectorAll(".catrow[data-n]").forEach(b=>b.onclick=()=>catView(+b.dataset.n));
   window.scrollTo(0,0);
 }
@@ -922,7 +942,7 @@ function catView(n){
     const tag = b===0 ? `<span class="tag new">처음</span>` : learnedCard(c) ? `<span class="tag">익힘</span>` : "";
     const gk = x => n===PICK_CAT ? x.band : x.mode;
     const grp = (n===WORD_CAT || n===PICK_CAT) && (i===0 || gk(cs[i-1])!==gk(c)) ? `<div class="sect">${esc(n===PICK_CAT ? c.band : c.where[0])}</div>` : "";   // 낱말은 무리마다 · 시험은 얼마나 자주 나오는지로 제목
-    return grp + `<div class="crow"><button data-id="${c.id}" aria-expanded="false"><span class="nm">${tokHtml(c)}<b>${esc(c.ko)} ${tag}</b><span class="sub">${esc(c.en)}</span></span>${boxesHtml(b)}</button><div class="detail" hidden>${cardInfo(c,false)}<button class="ghost" data-out="${c.id}">복습에서 빼기</button></div></div>`;
+    return grp + `<div class="crow"><div class="top"><button class="main" data-id="${c.id}" aria-expanded="false"><span class="nm">${tokHtml(c)}<b>${esc(c.ko)} ${tag}</b><span class="sub">${esc(c.en)}</span></span>${boxesHtml(b)}</button>${iconsHtml(c)}</div><div class="detail" hidden>${cardInfo(c,false)}</div></div>`;
   }).join("");
   $view.innerHTML = `
   <div class="wrap">
@@ -939,7 +959,8 @@ function catView(n){
   document.getElementById("hm").onclick = home;
   const go = document.getElementById("go"); if (go) go.onclick = () => startCat(n);
   $view.querySelectorAll("[data-out],[data-back]").forEach(b=>b.onclick=()=>{ const back = !!b.dataset.back, y = scrollY; toggleOut(b.dataset.out||b.dataset.back); catView(n); if(back){ const d=$view.querySelector(".outs"); if(d) d.open=true; } scrollTo(0,y); });
-  $view.querySelectorAll(".crow > button").forEach(b=>b.onclick=()=>{ const d=b.nextElementSibling; d.hidden=!d.hidden; b.setAttribute("aria-expanded", String(!d.hidden)); });
+  $view.querySelectorAll("[data-star]").forEach(b=>b.onclick=()=>{ const y = scrollY; toggleStar(b.dataset.star); catView(n); scrollTo(0,y); });
+  $view.querySelectorAll(".crow .main").forEach(b=>b.onclick=()=>{ const d=b.closest(".crow").querySelector(".detail"); d.hidden=!d.hidden; b.setAttribute("aria-expanded", String(!d.hidden)); });
   if (n !== catView.last) window.scrollTo(0,0); catView.last = n;
 }
 
@@ -1035,12 +1056,13 @@ function intro(e, back){
   CUR = e;
   $view.innerHTML = `
   <div class="wrap intro">
-    <div class="qhead"><span class="chip">새 카드 · ${esc(CATS.find(x=>x.n===c.cat).name)}</span><span>${esc(c.mode)}</span></div>
+    <div class="qhead"><span class="chip">새 카드 · ${esc(CATS.find(x=>x.n===c.cat).name)}</span><span>${esc(c.mode)}</span>${iconsHtml(c)}</div>
     ${cardInfo(c)}
     <button class="big" id="ok">알겠어요</button>
     ${backBtn()}
   </div>`;
   bindBack();
+  iconBind($view.querySelector(".qhead"), c, on=>{ if (on) next(); });
   window.scrollTo(0,0);
   document.getElementById("ok").onclick = () => {
     remember(c.id);
@@ -1072,7 +1094,7 @@ function asmLevel(e,c){
   if (b>=5 && c.then) return 2;
   return b>=3 ? 1 : 0;
 }
-const chipText = e => S.mode==="wrong" ? "틀린 것 복습" : S.mode==="cat" ? "분류 연습" : e.practice ? "한 번 더" : e.item.endsWith(".k") ? "키 → 뜻" : BY[e.item.split(".")[0]].cat===WORD_CAT ? "쓰임 → 영어 이름" : BY[e.item.split(".")[0]].cat===PICK_CAT ? "시험 → 키" : "할 일 → 키";
+const chipText = e => S.mode==="star" ? "★ 별표 공부" : S.mode==="wrong" ? "틀린 것 복습" : S.mode==="cat" ? "분류 연습" : e.practice ? "한 번 더" : e.item.endsWith(".k") ? "키 → 뜻" : BY[e.item.split(".")[0]].cat===WORD_CAT ? "쓰임 → 영어 이름" : BY[e.item.split(".")[0]].cat===PICK_CAT ? "시험 → 키" : "할 일 → 키";
 
 function ask(e){
   const [cid, dir] = e.item.split("."), c = BY[cid];
@@ -1089,13 +1111,14 @@ function ask(e){
   const left = S.queue.filter(x=>x.t==="q").length;
   $view.innerHTML = `
   <div class="wrap">
-    <div class="qhead"><span class="chip">${chipText(e)}</span><span>${esc(c.mode)} · 남은 문제 ${left}</span></div>
+    <div class="qhead"><span class="chip">${chipText(e)}</span><span>${esc(c.mode)} · 남은 문제 ${left}</span>${iconsHtml(c)}</div>
     ${prompt}
     <div class="choices">${opts.map(choice).join("")}</div>
     <button class="ghost" id="idk">모르겠어요 → 정답 보기</button>
     ${backBtn()}
   </div>`;
   bindBack();
+  iconBind($view.querySelector(".qhead"), c, on=>{ if (on) next(); });
   window.scrollTo(0,0);
   $view.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
     const pick = b.dataset.id, ok = pick===c.id;
@@ -1183,8 +1206,11 @@ function settle(e,c,ok,wrongLine){
     ${c.one ? `<p><b>${esc(c.why)}</b></p><p class="why">${esc(c.origin)}</p>` : `<p class="why">${esc(c.origin)} · ${esc(c.why)}</p>`}
     ${fam ? `<p class="why">가족: <b>${esc(fam.title)}</b></p>` : ""}
     ${pcGo(c) ? (ok ? `<p class="why">🖥 ${esc(pcGo(c))}</p>` : `<p>👉 <b>${esc(pcGo(c))}</b> 에서 해 보세요</p>`) : ""}
+    ${iconsHtml(c)}
     <button class="big" id="nx">다음</button>`;
   $view.querySelector(".wrap").appendChild(fb);
+  iconBind(fb, c, null);
+  $view.querySelectorAll(".qhead .icons").forEach(x=>x.remove());   // 답 뒤엔 아래 한 벌만
   document.getElementById("nx").onclick = ()=>{ next(); };
   document.getElementById("nx").focus({preventScroll:true});
   ok ? SOUND.ok() : SOUND.no();
@@ -1201,21 +1227,21 @@ function finish(){
   const cat = S.mode==="cat" ? S.cat : null;
   $view.innerHTML = `
   <div class="wrap">
-    <h1>${left ? "10분 됐어요. 오늘은 여기까지 해도 좋아요" : cat ? "이 분류 다 했어요" : "오늘 할 것 다 했어요"}</h1>
+    <h1>${left ? "10분 됐어요. 오늘은 여기까지 해도 좋아요" : S.mode==="star" ? "별표 카드 다 했어요" : cat ? "이 분류 다 했어요" : "오늘 할 것 다 했어요"}</h1>
     <div class="stats">
       <div class="stat"><b>${mins}분</b><span>이번 연습</span></div>
       <div class="stat"><b>${S.answered}</b><span>푼 문제</span></div>
       <div class="stat"><b>${S.correct}</b><span>맞힘</span></div>
     </div>
     <p class="note">오늘 처음 본 카드는 <b>내일</b> 다시 나와요. 하루 뒤엔 차이가 잘 안 느껴져도, 날을 띄워 꺼내 본 것은 한 달 뒤에 차이가 나요.</p>
-    ${cat ? `<button class="big" id="again">이 분류 한 번 더</button>` : `<button class="big" id="more">더 하기 (10분)</button>`}
+    ${S.mode==="star" ? `<button class="big" id="again">★ 별표 한 번 더</button>` : cat ? `<button class="big" id="again">이 분류 한 번 더</button>` : `<button class="big" id="more">더 하기 (10분)</button>`}
     <button class="big alt" id="wr" ${wrongToday.length?"":"disabled"}>틀린 것 복습 (${wrongToday.length}문제)</button>
     <button class="ghost" id="hm">처음 화면으로</button>
   </div>`;
   S.activeMs = 0; S.bankedS = 0;
   const m = document.getElementById("more"), a = document.getElementById("again");
   if (m) m.onclick = startMore;
-  if (a) a.onclick = ()=>startCat(cat);
+  if (a) a.onclick = S.mode==="star" ? startStar : ()=>startCat(cat);
   document.getElementById("wr").onclick = ()=>startWrong(wrongToday);
   document.getElementById("hm").onclick = home;
   window.scrollTo(0,0);
@@ -1227,7 +1253,7 @@ window.addEventListener("pagehide", ()=>{
 
 /* 새 판 저절로 받기 (11-15 「폰에 내용이 안 바뀌였던데?」 — 폰 브라우저가 옛 페이지를 들고 있었음) — 공개만들기.mjs 가 BUILD 를 채움.
    열 때·다시 볼 때 새 주소로 페이지를 몰래 받아 BUILD 가 다르면 바꿔 끼움. 문제 푸는 중(S)엔 안 끊음 — 처음 화면으로 오면 그때. */
-const BUILD = "c9e62e4f39";
+const BUILD = "e3dea81996";
 async function checkBuild(){
   if (!BUILD || S) return;
   try{
