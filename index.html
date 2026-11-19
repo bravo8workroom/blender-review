@@ -196,6 +196,7 @@ const CATS = [
  {n:14, name:"연습 시험 · 많이 쓰는 키부터", tip:"PC 🧊 3D 연습(기초·중급) 시험 문제예요. 여러 연습에 자주 나오는 키부터 하루 몇 장씩 다른 카드와 섞여 나와요. 할 일을 보고 누를 키를 골라요"},
  {n:15, name:"메뉴 이름 · 필기", tip:"블렌더 화면의 영어 메뉴·칸 이름. 하는 일을 보고 영어 이름을 골라요 — 보기는 헷갈리는 같은 무리끼리 나와요"},
  {n:16, name:"중급·뱀부 필수 메뉴", tip:"중급 연습·뱀부에서 꼭 찾아가야 하는 서랍·칸 자리. 하고 싶은 일을 보고 어디로 가는지 골라요 — 틀리면 PC 🧊 3D 연습 몇 번에서 해 보면 되는지 알려 줘요"},
+ {n:17, name:"바스미싱 메뉴", tip:"가게 바스미싱(다하오 화면)에서 우리 일 — DST 불러오기 → 판 밖 이송 + 2HP → 새 번호로 저장 — 에 쓰는 칸 자리. 사장실 🧵 바스미싱 「기능 지도」와 같은 내용이에요"},
 ];
 const CARDS = [
  /* ① 화면과 길 찾기 */
@@ -488,7 +489,34 @@ const MUST_CARDS = [
  {id:"mbsearch", cat:16, kind:"menu", one:true, keys:["🔍 돋보기"], ko:"설정 칸 이름으로 찾기", en:"Search", task:"프로세스에서 칸 이름은 아는데 어느 탭에 있는지 모를 때는?", mode:"뱀부 · 왼쪽 프로세스",
   why:"고급 칸은 숨어 있어 탭을 뒤지는 것보다 빨라요", where:["왼쪽 프로세스 줄 오른쪽","돋보기 🔍","칸 이름 치기"], origin:"⑬ 의 칸 이름을 외워 두면 바로 찾아요", near:["mbif","mbobj","mbtopp"], pc:"뱀부-12-서포트틈"},
 ];
-CARDS.push(...MUST_CARDS);
+const SEW_CAT = 17;   // ⑰ 바스미싱 메뉴 (11-19 사장님 「기능지도, 3D 폰 복습에 더 추가」) — 사장실 🧵 바스미싱 「기능 지도」와 같은 내용
+const SEW_CARDS = [
+ {id:"sw_load", cat:17, kind:"menu", one:true, keys:["패턴관리"], ko:"USB 무늬 불러오기", en:"MENU › 패턴관리", task:"PC에서 만든 DST를 USB로 가져와 지금 박을 무늬로 고르는 칸은?", mode:"바스미싱 · MENU 9칸",
+   why:"기계 메모리나 USB에서 무늬를 골라 지금 박을 무늬로 불러와요", where:["P1 화면","MENU","패턴관리"], origin:"불러오기 = 패턴관리 · 저장 = 옆 칸 패턴저장", near:["sw_save","sw_edit","sw_make"]},
+ {id:"sw_save", cat:17, kind:"menu", one:true, keys:["패턴저장"], ko:"고친 무늬 새 번호로 저장", en:"MENU › 패턴저장", task:"2HP를 넣은 무늬를 메모리나 USB에 저장하는 칸은?", mode:"바스미싱 · MENU 9칸",
+   why:"원본을 덮지 말고 새 번호로 저장해요 — 망치면 원본으로 다시", where:["P1 화면","MENU","패턴저장"], origin:"저장 전엔 고친 게 안 남아요", near:["sw_load","sw_edit","sw_backup"]},
+ {id:"sw_make", cat:17, kind:"menu", one:true, keys:["그래픽메이킹"], ko:"기계에서 무늬 그리기 · 2HP 단추 있는 곳", en:"MENU › 그래픽메이킹", task:"기계 화면에서 무늬를 직접 그리고, 2HP 단추가 들어 있는 칸은?", mode:"바스미싱 · MENU 9칸",
+   why:"피치·속도 화면 → 파란 체크 → 「다음 원점 입력」 화면이 나와요", where:["MENU","그래픽메이킹","피치·속도 → 파란 체크","「다음 원점 입력」"], origin:"이름이 비슷한 그래픽수정은 「이미 있는 무늬 고치기」", near:["sw_edit","sw_2hp","sw_conv"]},
+ {id:"sw_feed", cat:17, kind:"menu", one:true, keys:["8방향 화살표"], ko:"박지 않고 판을 판 밖까지 이송", en:"그래픽메이킹 › 다음 원점 입력 › 화살표", task:"2HP를 찍기 전에, 박지 않고 판을 판 밖 자리까지 먼저 옮겨 두는 것은?", mode:"바스미싱 · 다음 원점 입력 화면",
+   why:"이송을 안 하고 2HP를 누르면 경고 M-041 이 떠요", where:["MENU","그래픽메이킹","「다음 원점 입력」","8방향 화살표로 판 밖까지"], origin:"이송 = 박지 않고 판만 움직이기 (FEED)", near:["sw_2hp","sw_make","sw_fix2hp"]},
+ {id:"sw_2hp", cat:17, kind:"menu", one:true, keys:["2HP"], ko:"끝 자리(제2원점) 찍기", en:"그래픽메이킹 › 다음 원점 입력 › 2HP", task:"다 박은 판이 원점 대신 판 밖 자리로 빠져나가게, 그 끝 자리를 찍는 단추는?", mode:"바스미싱 · 다음 원점 입력 화면",
+   why:"이송 바로 뒤에만 눌려요 — 먼저 누르면 경고 M-041", where:["MENU","그래픽메이킹","「다음 원점 입력」","아래 줄 2HP"], origin:"2HP = 제2원점(차원점). 한 무늬에 하나만 (경고 M-027)", near:["sw_feed","sw_fix2hp","sw_make"]},
+ {id:"sw_edit", cat:17, kind:"menu", one:true, keys:["그래픽수정"], ko:"불러온 무늬 고치기 (수정모드)", en:"MENU › 그래픽수정", task:"불러온 무늬의 점 · 땀 · 코드 · 속도를 고치는 칸은?", mode:"바스미싱 · MENU 9칸",
+   why:"위 4칸에서 고칠 종류를 먼저 골라요 — 바늘 그림 = 땀 · L↔H = 속도 · CODE = 코드 · ㄴ자 = 모양점", where:["MENU","그래픽수정","위 4칸에서 종류 고르기"], origin:"이름이 비슷한 그래픽메이킹은 「새로 그리기」", near:["sw_make","sw_conv","sw_fix2hp"]},
+ {id:"sw_fix2hp", cat:17, kind:"menu", one:true, keys:["차원점수정"], ko:"넣어 둔 2HP 자리 고치기", en:"그래픽수정 › 땀 수정 › 차원점수정", task:"이미 넣은 2HP(끝 자리)를 다른 자리로 고치는 단추는?", mode:"바스미싱 · 수정모드",
+   why:"2HP를 지우고 다시 넣지 않고 자리만 옮겨요", where:["MENU","그래픽수정","위 4칸 바늘 그림 (땀 수정)","차원점수정"], origin:"차원점 = 2HP 의 다른 이름", near:["sw_2hp","sw_pt","sw_edit"]},
+ {id:"sw_pt", cat:17, kind:"menu", one:true, keys:["점삽입 · 점삭제 · 점이동"], ko:"땀 점 하나 손질", en:"그래픽수정 › 땀 수정", task:"땀 점 하나를 넣고 · 지우고 · 옮기는 단추가 모인 곳은?", mode:"바스미싱 · 수정모드",
+   why:"잘못 고치면 아래 undo 로 되돌려요", where:["MENU","그래픽수정","위 4칸 바늘 그림 (땀 수정)","점삽입 · 점삭제 · 점이동"], origin:"여러 점이 이어진 한 구간은 단이동 · 단수정", near:["sw_fix2hp","sw_edit","sw_conv"]},
+ {id:"sw_conv", cat:17, kind:"menu", one:true, keys:["평행 이동"], ko:"무늬 통째로 옮기기", en:"MENU › 그래픽전환 › 평행 이동", task:"무늬 전체를 판 위에서 통째로 옮겨 모판 자리에 맞추는 단추는?", mode:"바스미싱 · 전환모드",
+   why:"모양은 그대로 두고 자리만 옮겨요", where:["MENU","그래픽전환 (전환모드)","평행 이동"], origin:"같은 화면에 미러 · 회전 · 확대축소 · 복사", near:["sw_edit","sw_make","sw_pt"]},
+ {id:"sw_d4", cat:17, kind:"menu", one:true, keys:["D-4"], ko:"발 다 올라갈 때까지 판이 기다리는 시간", en:"Program › 중간노루발 › D-4", task:"다 박은 뒤 발이 다 올라가기 전에 판이 출발해 모판이 긁히지 않게, 기다리는 시간을 정하는 칸은?", mode:"바스미싱 · 설정모드",
+   why:"단위 1/1000초 — 100이면 0.1초. 두꺼운 모판을 쓸 때 필요한 보험", where:["P1 화면","아래 Program","설정모드 1쪽","중간노루발","D-4"], origin:"주차장 차단기(발)가 다 올라가야 차(판)가 출발", near:["sw_backup","sw_lock","sw_save"]},
+ {id:"sw_backup", cat:17, kind:"menu", one:true, keys:["백업환원"], ko:"설정값 USB에 저장 · 되살리기", en:"MENU › Function 기능모드 › 백업환원", task:"D-4 같은 설정을 바꾸기 전에, 지금 값을 USB에 저장해 두는 단추는?", mode:"바스미싱 · 기능모드",
+   why:"바꾼 값이 이상하면 그대로 되돌릴 수 있어요", where:["MENU","Function 기능모드","백업환원"], origin:"옆의 「기본변수」는 누르지 않아요", near:["sw_d4","sw_lock","sw_save"]},
+ {id:"sw_lock", cat:17, kind:"menu", one:true, keys:["P1 제목줄 5초"], ko:"잠긴 단추 풀기", en:"키보드 잠금 해제", task:"화면 단추가 전부 회색으로 잠겨 안 눌릴 때 푸는 법은?", mode:"바스미싱 · P1 화면",
+   why:"기능모드 「패널설정」 안 키보드 잠금이 켜진 거예요", where:["P1 화면","맨 위 제목줄","5초 넘게 꾹 → 「삐」"], origin:"그래서 패널설정은 누르지 않아요", near:["sw_backup","sw_d4","sw_load"]},
+];
+CARDS.push(...MUST_CARDS, ...SEW_CARDS);
 const pcGo = c => { const p = c.pc && PC_NUM[c.pc]; if (!p) return "";   // 그 길을 해 보는 PC 연습 — 번호 + 제목 (대시보드 찾기 칸에 그대로 치면 그 연습 하나)
   const tab = p.g === "뱀부-기초" ? "뱀부 기초 " : p.g === "뱀부-노트" ? "뱀부 노트 " : "";
   return `PC 🧊 3D 연습 ${tab}${p.n}번 「${p.t}」`; };
@@ -878,7 +906,7 @@ function counts(){
   return {due,newToday,fresh,paused};
 }
 function mixPick(list){ // ⑭ 연습 시험 카드를 다른 카드와 하나씩 번갈아 (많이 쓰는 키가 다른 분류 뒤로 밀리지 않게 · 11-15 19:27)
-  const p = list.filter(c=>c.cat===PICK_CAT), o = list.filter(c=>c.cat===MUST_CAT).concat(list.filter(c=>c.cat!==PICK_CAT && c.cat!==MUST_CAT)), r = [];   // ⑯ 필수 메뉴는 새 카드 앞쪽 (11-16 — 뒤에 밀려 몇 주 안 나오지 않게)
+  const p = list.filter(c=>c.cat===PICK_CAT), o = list.filter(c=>c.cat===MUST_CAT || c.cat===SEW_CAT).concat(list.filter(c=>c.cat!==PICK_CAT && c.cat!==MUST_CAT && c.cat!==SEW_CAT)), r = [];   // ⑯ 필수 메뉴는 새 카드 앞쪽 (11-16 — 뒤에 밀려 몇 주 안 나오지 않게)
   for (let i=0; i<Math.max(p.length,o.length); i++){ if (o[i]) r.push(o[i]); if (p[i]) r.push(p[i]); }
   return r;
 }
@@ -1253,7 +1281,7 @@ window.addEventListener("pagehide", ()=>{
 
 /* 새 판 저절로 받기 (11-15 「폰에 내용이 안 바뀌였던데?」 — 폰 브라우저가 옛 페이지를 들고 있었음) — 공개만들기.mjs 가 BUILD 를 채움.
    열 때·다시 볼 때 새 주소로 페이지를 몰래 받아 BUILD 가 다르면 바꿔 끼움. 문제 푸는 중(S)엔 안 끊음 — 처음 화면으로 오면 그때. */
-const BUILD = "f1999b39f5";
+const BUILD = "6fc525a7dc";
 async function checkBuild(){
   if (!BUILD || S) return;
   try{
